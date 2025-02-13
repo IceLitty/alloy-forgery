@@ -1,0 +1,63 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mixins]]
+config="alloy-forgery.mixins.json"
+
+[[accessTransformers]]
+file="META-INF/accesstransformer.cfg"
+
+[[mods]]
+modId = "alloy_forgery"
+version = "${version}"
+displayName = "Alloy Forgery"
+logoFile = "assets/alloy_forgery/icon.png"
+updateJSONURL = ""
+displayURL = ""
+authors = "glisco | Noaaan | LordDeatHunter | Blodhgarm"
+description = '''
+Configurable, data-driven Alloy Forges for all your smelting needs
+'''
+
+[[dependencies.tacz]]
+modId = "neoforge"
+type="required"
+versionRange = "[21.1.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.tacz]]
+modId = "minecraft"
+type="required"
+versionRange = "[1.21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.tacz]]
+modId = "owo"
+type="required"
+versionRange = "[0.12.11,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.tacz]]
+modId = "craft-this-from-that"
+type="optional"
+versionRange = "*"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.tacz]]
+modId = "mythicmetals"
+type="optional"
+versionRange = "*"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.tacz]]
+modId = "roughlyenoughitems"
+type="optional"
+versionRange = "[14.0.0,)"
+ordering = "NONE"
+side = "CLIENT"
