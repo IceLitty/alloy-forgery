@@ -1,10 +1,10 @@
 package wraith.alloyforgery.data;
 
 import net.fabricmc.fabric.api.tag.convention.v2.TagUtil;
-import net.minecraft.item.Item;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.TagKey;
+import net.minecraft.resources.ResourceLocation;
 import wraith.alloyforgery.AlloyForgery;
 
 public class AlloyForgeryTags {
@@ -134,16 +134,16 @@ public class AlloyForgeryTags {
             return register(alloyForgery(path));
         }
 
-        private static TagKey<Item> register(Identifier id) {
-            return TagKey.of(RegistryKeys.ITEM, id);
+        private static TagKey<Item> register(ResourceLocation id) {
+            return TagKey.create(Registries.ITEM, id);
         }
     }
 
-    private static Identifier common(String path) {
-        return Identifier.of(COMMON_NAMESPACE, path);
+    private static ResourceLocation common(String path) {
+        return ResourceLocation.fromNamespaceAndPath(COMMON_NAMESPACE, path);
     }
 
-    private static Identifier alloyForgery(String path) {
+    private static ResourceLocation alloyForgery(String path) {
         return AlloyForgery.id(path);
     }
 }

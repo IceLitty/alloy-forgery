@@ -1,6 +1,6 @@
 package wraith.alloyforgery.block;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 public class ItemStackComparisonUtil {
@@ -15,7 +15,7 @@ public class ItemStackComparisonUtil {
             ItemStack stack1 = list1.get(i);
             ItemStack stack2 = list2.get(i);
 
-            if (!ItemStack.areEqual(stack1, stack2)) {
+            if (!ItemStack.matches(stack1, stack2)) {
                 return true;
             }
         }

@@ -2,36 +2,35 @@ package wraith.alloyforgery;
 
 import io.wispforest.owo.client.screens.ScreenUtils;
 import io.wispforest.owo.client.screens.SlotGenerator;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.*;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.*;
 import wraith.alloyforgery.block.ForgeControllerBlockEntity;
 import wraith.alloyforgery.forges.ForgeFuelRegistry;
 
-public class AlloyForgeScreenHandler extends ScreenHandler {
+public class AlloyForgeScreenHandler extends AbstractContainerMenu {
 
-    private final Inventory controllerInventory;
-    private final PropertyDelegate propertyDelegate;
+    private final Container controllerInventory;
+    private final ContainerData propertyDelegate;
 
-    public AlloyForgeScreenHandler(int syncId, PlayerInventory inventory) {
-        this(syncId, inventory, new SimpleInventory(ForgeControllerBlockEntity.INVENTORY_SIZE), new ArrayPropertyDelegate(4));
+    public AlloyForgeScreenHandler(int syncId, Inventory inventory) {
+        this(syncId, inventory, new SimpleContainer(ForgeControllerBlockEntity.INVENTORY_SIZE), new SimpleContainerData(4));
     }
 
-    public AlloyForgeScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate propertyDelegate) {
+    public AlloyForgeScreenHandler(int syncId, Inventory playerInventory, Container inventory, ContainerData propertyDelegate) {
         super(AlloyForgery.ALLOY_FORGE_SCREEN_HANDLER_TYPE, syncId);
 
         this.controllerInventory = inventory;
         this.propertyDelegate = propertyDelegate;
-        this.addProperties(propertyDelegate);
+        this.addDataSlots(propertyDelegate);
 
         //Fuel Slot
         this.addSlot(new Slot(controllerInventory, 11, 8, 74) {
             @Override
-            public boolean canInsert(ItemStack stack) {
+            public boolean mayPlace(ItemStack stack) {
                 return ForgeFuelRegistry.hasFuel(stack.getItem());
             }
         });
@@ -39,7 +38,7 @@ public class AlloyForgeScreenHandler extends ScreenHandler {
         //Recipe Output
         this.addSlot(new Slot(controllerInventory, 10, 145, 50) {
             @Override
-            public boolean canInsert(ItemStack stack) {
+            public boolean mayPlace(ItemStack stack) {
                 return false;
             }
         });
@@ -51,8 +50,8 @@ public class AlloyForgeScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int invSlot) {
-        return ScreenUtils.handleSlotTransfer(this, invSlot, this.controllerInventory.size());
+    public ItemStack quickMoveStack(Player player, int invSlot) {
+        return ScreenUtils.handleSlotTransfer(this, invSlot, this.controllerInventory.getContainerSize());
     }
 
     public int getSmeltProgress() {
@@ -72,11 +71,11 @@ public class AlloyForgeScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
-        return this.controllerInventory.canPlayerUse(player);
+    public boolean stillValid(Player player) {
+        return this.controllerInventory.stillValid(player);
     }
 
-    public Inventory getControllerInventory() {
+    public Container getControllerInventory() {
         return this.controllerInventory;
     }
 }

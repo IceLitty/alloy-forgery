@@ -9,11 +9,11 @@ import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.*;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.resources.ResourceLocation;
 import wraith.alloyforgery.recipe.AlloyForgeRecipe;
 import java.util.*;
 
@@ -27,9 +27,9 @@ public class AlloyForgingDisplay implements Display {
 
     public final Map<AlloyForgeRecipe.OverrideRange, ItemStack> overrides;
 
-    public final Optional<Identifier> recipeID;
+    public final Optional<ResourceLocation> recipeID;
 
-    private AlloyForgingDisplay(List<EntryIngredient> inputs, EntryIngredient output, int minForgeTier, int requiredFuel, Map<AlloyForgeRecipe.OverrideRange, ItemStack> overrides, Optional<Identifier> recipeID) {
+    private AlloyForgingDisplay(List<EntryIngredient> inputs, EntryIngredient output, int minForgeTier, int requiredFuel, Map<AlloyForgeRecipe.OverrideRange, ItemStack> overrides, Optional<ResourceLocation> recipeID) {
         this.inputs = inputs;
         this.output = output;
 
@@ -41,7 +41,7 @@ public class AlloyForgingDisplay implements Display {
         this.recipeID = recipeID;
     }
 
-    public static AlloyForgingDisplay of(RecipeEntry<AlloyForgeRecipe> recipeEntry) {
+    public static AlloyForgingDisplay of(RecipeHolder<AlloyForgeRecipe> recipeEntry) {
         List<EntryIngredient> convertedInputs = new ArrayList<>();
 
         var recipe = recipeEntry.value();
@@ -51,7 +51,7 @@ public class AlloyForgingDisplay implements Display {
                 int stackCount = Math.min(i, 64);
 
                 convertedInputs.add(
-                        EntryIngredients.ofItemStacks(Arrays.stream(entry.getKey().getMatchingStacks())
+                        EntryIngredients.ofItemStacks(Arrays.stream(entry.getKey().getItems())
                                 .map(ItemStack::copy)
                                 .peek(stack -> stack.setCount(stackCount))
                                 .toList()));
@@ -85,7 +85,7 @@ public class AlloyForgingDisplay implements Display {
     }
 
     @Override
-    public Optional<Identifier> getDisplayLocation() {
+    public Optional<ResourceLocation> getDisplayLocation() {
         return recipeID;
     }
 
@@ -94,7 +94,7 @@ public class AlloyForgingDisplay implements Display {
         INSTANCE;
 
         @Override
-        public NbtCompound save(NbtCompound tag, AlloyForgingDisplay display) {
+        public CompoundTag save(CompoundTag tag, AlloyForgingDisplay display) {
             // Store the fuel per tick
             tag.putInt("fuel_per_tick", display.requiredFuel);
 
@@ -102,16 +102,16 @@ public class AlloyForgingDisplay implements Display {
             tag.putInt("min_forge_tier", display.minForgeTier);
 
             // Store the recipe inputs
-            NbtList inputs = new NbtList();
+            ListTag inputs = new ListTag();
             inputs.addAll(display.inputs.stream().map(EntryIngredient::saveIngredient).toList());
             tag.put("inputs", inputs);
 
             // Store the recipe output
             tag.put("output", display.output.saveIngredient());
 
-            NbtList overrides = new NbtList();
+            ListTag overrides = new ListTag();
             display.overrides.forEach((overrideRange, itemStack) -> {
-                NbtCompound overrideTag = new NbtCompound();
+                CompoundTag overrideTag = new CompoundTag();
 
                 overrideTag.putInt("lower", overrideRange.lowerBound());
                 overrideTag.putInt("upper", overrideRange.upperBound());
@@ -127,7 +127,7 @@ public class AlloyForgingDisplay implements Display {
         }
 
         @Override
-        public AlloyForgingDisplay read(NbtCompound tag) {
+        public AlloyForgingDisplay read(CompoundTag tag) {
             // Get the fuel per tick
             int requiredFuel = tag.getInt("fuel_per_tick");
 
@@ -136,15 +136,15 @@ public class AlloyForgingDisplay implements Display {
 
             // We get a list of all the recipe inputs
             List<EntryIngredient> input = new ArrayList<>();
-            tag.getList("inputs", NbtElement.LIST_TYPE).forEach(nbtElement -> input.add(EntryIngredient.read((NbtList) nbtElement)));
+            tag.getList("inputs", Tag.TAG_LIST).forEach(nbtElement -> input.add(EntryIngredient.read((ListTag) nbtElement)));
 
             // We get the single recipe output
-            EntryIngredient output = EntryIngredient.read(tag.getList("output", NbtElement.LIST_TYPE));
+            EntryIngredient output = EntryIngredient.read(tag.getList("output", Tag.TAG_LIST));
 
             // Last thing we grab is the recipes Override Range Values
             ImmutableMap.Builder<AlloyForgeRecipe.OverrideRange, ItemStack> builder = new ImmutableMap.Builder<>();
-            tag.getList("overrides", NbtElement.COMPOUND_TYPE).forEach(nbtElement -> {
-                NbtCompound overrideTag = (NbtCompound) nbtElement;
+            tag.getList("overrides", Tag.TAG_COMPOUND).forEach(nbtElement -> {
+                CompoundTag overrideTag = (CompoundTag) nbtElement;
 
                 AlloyForgeRecipe.OverrideRange range = new AlloyForgeRecipe.OverrideRange(overrideTag.getInt("lower"), overrideTag.getInt("upper"));
                 ItemStack stack = MinecraftEndecs.ITEM_STACK.decodeFully(NbtDeserializer::of, overrideTag.getCompound("stack"));
@@ -152,7 +152,7 @@ public class AlloyForgingDisplay implements Display {
                 builder.put(range, stack);
             });
 
-            var recipeID = tag.contains("recipeID") ? Identifier.tryParse(tag.getString("recipeID")) : null;
+            var recipeID = tag.contains("recipeID") ? ResourceLocation.tryParse(tag.getString("recipeID")) : null;
 
             return new AlloyForgingDisplay(input, output, minForgeTier, requiredFuel, builder.build(), Optional.ofNullable(recipeID));
         }

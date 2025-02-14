@@ -1,27 +1,27 @@
 package wraith.alloyforgery.mixin;
 
 import com.google.common.collect.Multimap;
-import net.minecraft.recipe.*;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import java.util.Map;
 
 @Mixin(RecipeManager.class)
 public interface RecipeManagerAccessor {
-    @Accessor("recipesByType")
-    Multimap<RecipeType<?>, RecipeEntry<?>> af$getRecipes();
+    @Accessor("byType")
+    Multimap<RecipeType<?>, RecipeHolder<?>> af$getRecipes();
 
-    @Accessor("recipesByType")
-    void af$setRecipes(Multimap<RecipeType<?>, RecipeEntry<?>> recipesByType);
+    @Accessor("byType")
+    void af$setRecipes(Multimap<RecipeType<?>, RecipeHolder<?>> recipesByType);
 
-    @Accessor("recipesById")
-    Map<Identifier, RecipeEntry<?>> af$getRecipesById();
+    @Accessor("byName")
+    Map<ResourceLocation, RecipeHolder<?>> af$getRecipesById();
 
-    @Accessor("recipesById")
-    void af$setRecipesById(Map<Identifier, RecipeEntry<?>> recipesById);
+    @Accessor("byName")
+    void af$setRecipesById(Map<ResourceLocation, RecipeHolder<?>> recipesById);
 
-    @Accessor("registryLookup")
-    RegistryWrapper.WrapperLookup af$getRegistryLookup();
+    @Accessor("registries")
+    HolderLookup.Provider af$getRegistryLookup();
 }

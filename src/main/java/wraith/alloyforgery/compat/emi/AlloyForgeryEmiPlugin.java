@@ -4,16 +4,16 @@ import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiStack;
-import net.minecraft.block.Block;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.resources.ResourceLocation;
 import wraith.alloyforgery.AlloyForgery;
 import wraith.alloyforgery.forges.ForgeRegistry;
 import wraith.alloyforgery.recipe.AlloyForgeRecipe;
 
 public class AlloyForgeryEmiPlugin implements EmiPlugin {
 
-    private static final Identifier FORGE_ID = AlloyForgery.id("alloy_forge");
+    private static final ResourceLocation FORGE_ID = AlloyForgery.id("alloy_forge");
     public static final EmiRecipeCategory FORGE_CATEGORY = new EmiRecipeCategory(FORGE_ID, EmiStack.of(ForgeRegistry.getControllerBlocks().get(0)));
 
     @Override
@@ -24,7 +24,7 @@ public class AlloyForgeryEmiPlugin implements EmiPlugin {
             registry.addWorkstation(FORGE_CATEGORY, EmiStack.of(controller));
         }
 
-        for (RecipeEntry<AlloyForgeRecipe> recipeEntry : registry.getRecipeManager().listAllOfType(AlloyForgeRecipe.Type.INSTANCE)) {
+        for (RecipeHolder<AlloyForgeRecipe> recipeEntry : registry.getRecipeManager().getAllRecipesFor(AlloyForgeRecipe.Type.INSTANCE)) {
             registry.addRecipe(new AlloyForgeryEmiRecipe(recipeEntry));
         }
 

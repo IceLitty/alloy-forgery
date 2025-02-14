@@ -5,12 +5,12 @@ import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.text.OrderedText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import wraith.alloyforgery.AlloyForgery;
@@ -19,7 +19,7 @@ import java.util.*;
 
 public class AlloyForgeryEmiRecipe implements EmiRecipe {
 
-    static final Identifier GUI_TEXTURE = AlloyForgery.id("textures/gui/forge_controller.png");
+    static final ResourceLocation GUI_TEXTURE = AlloyForgery.id("textures/gui/forge_controller.png");
 
     private final List<EmiIngredient> inputs;
     private final EmiStack output;
@@ -29,9 +29,9 @@ public class AlloyForgeryEmiRecipe implements EmiRecipe {
 
     private final Map<AlloyForgeRecipe.OverrideRange, ItemStack> overrides;
 
-    private final Identifier recipeID;
+    private final ResourceLocation recipeID;
 
-    public AlloyForgeryEmiRecipe(RecipeEntry<AlloyForgeRecipe> recipeEntry) {
+    public AlloyForgeryEmiRecipe(RecipeHolder<AlloyForgeRecipe> recipeEntry) {
         var recipe = recipeEntry.value();
 
         //Convert inputs to a list of EMI Ingredients
@@ -41,7 +41,7 @@ public class AlloyForgeryEmiRecipe implements EmiRecipe {
                 int stackCount = Math.min(i, 64);
 
                 convertedInputs.add(
-                        EmiIngredient.of(Arrays.stream(entry.getKey().getMatchingStacks())
+                        EmiIngredient.of(Arrays.stream(entry.getKey().getItems())
                                 .map(ItemStack::copy)
                                 .peek(stack -> stack.setCount(stackCount))
                                 .map(EmiStack::of)
@@ -68,7 +68,7 @@ public class AlloyForgeryEmiRecipe implements EmiRecipe {
         var tierTextWidget = widgets.add(new CustomTextWidget(minTierText(minForgeTier), 8, 7, 0x404040, false));
 
         //the fuel required text
-        widgets.addText(Text.translatable("container.alloy_forgery.rei.fuel_per_tick", requiredFuel).asOrderedText(), 8, 20, 0x404040, false);
+        widgets.addText(Component.translatable("container.alloy_forgery.rei.fuel_per_tick", requiredFuel).getVisualOrderText(), 8, 20, 0x404040, false);
 
         //the ten input slots background
         widgets.addTexture(GUI_TEXTURE, 6, 34, 92, 38, 42, 41);
@@ -112,8 +112,8 @@ public class AlloyForgeryEmiRecipe implements EmiRecipe {
         })));
     }
 
-    private static OrderedText minTierText(Object tierArg) {
-        return Text.translatable("container.alloy_forgery.rei.min_tier", tierArg).asOrderedText();
+    private static FormattedCharSequence minTierText(Object tierArg) {
+        return Component.translatable("container.alloy_forgery.rei.min_tier", tierArg).getVisualOrderText();
     }
 
     @Override
@@ -122,7 +122,7 @@ public class AlloyForgeryEmiRecipe implements EmiRecipe {
     }
 
     @Override
-    public @Nullable Identifier getId() {
+    public @Nullable ResourceLocation getId() {
         return recipeID;
     }
 

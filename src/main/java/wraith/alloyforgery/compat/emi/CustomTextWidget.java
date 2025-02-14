@@ -1,18 +1,18 @@
 package wraith.alloyforgery.compat.emi;
 
 import dev.emi.emi.api.widget.*;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.OrderedText;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.util.FormattedCharSequence;
 
 public class CustomTextWidget extends Widget {
-    private static final MinecraftClient CLIENT = MinecraftClient.getInstance();
-    private OrderedText text;
+    private static final Minecraft CLIENT = Minecraft.getInstance();
+    private FormattedCharSequence text;
     private final int x, y;
     private final int color;
     private final boolean shadow;
 
-    public CustomTextWidget(OrderedText text, int x, int y, int color, boolean shadow) {
+    public CustomTextWidget(FormattedCharSequence text, int x, int y, int color, boolean shadow) {
         this.text = text;
         this.x = x;
         this.y = y;
@@ -20,27 +20,27 @@ public class CustomTextWidget extends Widget {
         this.shadow = shadow;
     }
 
-    public void setText(OrderedText text) {
+    public void setText(FormattedCharSequence text) {
         this.text = text;
     }
 
     @Override
     public Bounds getBounds() {
-        int width = CLIENT.textRenderer.getWidth(text);
+        int width = CLIENT.font.width(text);
         int xOff = TextWidget.Alignment.START.offset(width);
-        int yOff = TextWidget.Alignment.START.offset(CLIENT.textRenderer.fontHeight);
-        return new Bounds(x + xOff, y + yOff, width, CLIENT.textRenderer.fontHeight);
+        int yOff = TextWidget.Alignment.START.offset(CLIENT.font.lineHeight);
+        return new Bounds(x + xOff, y + yOff, width, CLIENT.font.lineHeight);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        var matrices = context.getMatrices();
-        matrices.push();
-        int xOff = TextWidget.Alignment.START.offset(CLIENT.textRenderer.getWidth(text));
-        int yOff = TextWidget.Alignment.START.offset(CLIENT.textRenderer.fontHeight);
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        var matrices = context.pose();
+        matrices.pushPose();
+        int xOff = TextWidget.Alignment.START.offset(CLIENT.font.width(text));
+        int yOff = TextWidget.Alignment.START.offset(CLIENT.font.lineHeight);
         matrices.translate(xOff, yOff, 300);
-        context.drawText(CLIENT.textRenderer, text, x, y, color, shadow);
-        matrices.pop();
+        context.drawString(CLIENT.font, text, x, y, color, shadow);
+        matrices.popPose();
     }
 
 }

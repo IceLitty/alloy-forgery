@@ -2,12 +2,12 @@ package wraith.alloyforgery.compat.emi;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.widget.*;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.tooltip.TooltipComponent;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.network.chat.Component;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
@@ -16,7 +16,7 @@ public class CustomButtonWidget extends Widget {
     private final int x, y;
     private final BooleanSupplier isActive;
     private final ButtonWidget.ClickAction action;
-    private final List<TooltipComponent> tooltipComponent = List.of(TooltipComponent.of(Text.translatable("container.alloy_forgery.rei.button").asOrderedText()));
+    private final List<ClientTooltipComponent> tooltipComponent = List.of(ClientTooltipComponent.create(Component.translatable("container.alloy_forgery.rei.button").getVisualOrderText()));
 
     public CustomButtonWidget(int x, int y, BooleanSupplier isActive, ButtonWidget.ClickAction action) {
         this.x = x;
@@ -31,7 +31,7 @@ public class CustomButtonWidget extends Widget {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         RenderSystem.setShaderTexture(0, AlloyForgeryEmiRecipe.GUI_TEXTURE);
         int v = 68;
         boolean active = this.isActive.getAsBoolean();
@@ -41,19 +41,19 @@ public class CustomButtonWidget extends Widget {
             v += 12;
         }
         RenderSystem.enableDepthTest();
-        context.drawTexture(AlloyForgeryEmiRecipe.GUI_TEXTURE, this.x, this.y, 176, v, 12, 12, 256, 256);
+        context.blit(AlloyForgeryEmiRecipe.GUI_TEXTURE, this.x, this.y, 176, v, 12, 12, 256, 256);
     }
 
     @Override
     public boolean mouseClicked(int mouseX, int mouseY, int button) {
         if (!isActive.getAsBoolean()) return false;
         action.click(mouseX, mouseY, button);
-        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0f));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0f));
         return true;
     }
 
     @Override
-    public List<TooltipComponent> getTooltip(int mouseX, int mouseY) {
+    public List<ClientTooltipComponent> getTooltip(int mouseX, int mouseY) {
         return tooltipComponent;
     }
 }

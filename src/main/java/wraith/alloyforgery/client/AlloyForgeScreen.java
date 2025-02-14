@@ -6,10 +6,10 @@ import io.wispforest.owo.ui.component.TextureComponent;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.PositionedRectangle;
 import io.wispforest.owo.ui.core.Sizing;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.tooltip.TooltipComponent;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.network.chat.Component;
 import wraith.alloyforgery.AlloyForgeScreenHandler;
 import wraith.alloyforgery.AlloyForgery;
 import java.util.List;
@@ -21,13 +21,13 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
     private TextureComponent invalidCross;
     private FlowLayout lavaBar;
 
-    public AlloyForgeScreen(AlloyForgeScreenHandler handler, PlayerInventory inventory, Text title) {
+    public AlloyForgeScreen(AlloyForgeScreenHandler handler, Inventory inventory, Component title) {
         super(handler, inventory, title, FlowLayout.class, BaseUIModelScreen.DataSource.asset(AlloyForgery.id("forge")));
-        this.backgroundWidth = 176;
-        this.backgroundHeight = 189;
+        this.imageWidth = 176;
+        this.imageHeight = 189;
 
-        this.titleY = 69420;
-        this.playerInventoryTitleY = this.backgroundHeight - 93;
+        this.titleLabelY = 69420;
+        this.inventoryLabelY = this.imageHeight - 93;
     }
 
     @Override
@@ -39,30 +39,30 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        this.fuelGauge.visibleArea(PositionedRectangle.of(0, this.fuelGauge.height() - this.handler.getFuelProgress(), this.fuelGauge.fullSize()));
-        this.progressGauge.visibleArea(PositionedRectangle.of(0, 0, this.progressGauge.width(), this.handler.getSmeltProgress()));
-        this.lavaBar.horizontalSizing(Sizing.fixed(this.handler.getLavaProgress()));
+        this.fuelGauge.visibleArea(PositionedRectangle.of(0, this.fuelGauge.height() - this.menu.getFuelProgress(), this.fuelGauge.fullSize()));
+        this.progressGauge.visibleArea(PositionedRectangle.of(0, 0, this.progressGauge.width(), this.menu.getSmeltProgress()));
+        this.lavaBar.horizontalSizing(Sizing.fixed(this.menu.getLavaProgress()));
 
-        int requiredTier = this.handler.getRequiredTierData();
+        int requiredTier = this.menu.getRequiredTierData();
 
         if (requiredTier <= -1) {
             this.invalidCross
                     .visibleArea(PositionedRectangle.of(0, 0, 0, 0))
-                    .tooltip(List.<TooltipComponent>of());
+                    .tooltip(List.<ClientTooltipComponent>of());
         } else {
             this.invalidCross
                     .resetVisibleArea()
-                    .tooltip(Text.translatable("tooltip.alloy_forgery.invalid_tier", requiredTier));
+                    .tooltip(Component.translatable("tooltip.alloy_forgery.invalid_tier", requiredTier));
         }
     }
 
     public int rootX() {
-        return this.x;
+        return this.leftPos;
     }
 
     public int rootY() {
-        return this.y;
+        return this.topPos;
     }
 }

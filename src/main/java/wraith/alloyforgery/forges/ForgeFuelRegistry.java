@@ -1,8 +1,8 @@
 package wraith.alloyforgery.forges;
 
 import com.google.gson.JsonObject;
-import net.minecraft.item.Item;
-import net.minecraft.util.JsonHelper;
+import net.minecraft.world.item.Item;
+import net.minecraft.util.GsonHelper;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +36,7 @@ public class ForgeFuelRegistry {
 
         public static ForgeFuelDefinition fromJson(JsonObject json) {
             final int fuel = json.get("fuel").getAsInt();
-            final var returnType = JsonHelper.getItem(json, "return_item", null);
+            final var returnType = GsonHelper.getAsItem(json, "return_item", null);
 
             return new ForgeFuelDefinition(fuel, returnType != null ? returnType.value() : null);
         }

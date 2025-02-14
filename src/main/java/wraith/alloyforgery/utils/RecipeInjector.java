@@ -5,12 +5,11 @@ import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.recipe.*;
-import net.minecraft.recipe.input.RecipeInput;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import wraith.alloyforgery.mixin.RecipeManagerAccessor;
 import java.util.HashMap;
@@ -39,8 +38,8 @@ public final class RecipeInjector {
 
     private final RecipeManager manager;
 
-    private final Multimap<RecipeType<?>, RecipeEntry<?>> recipes = HashMultimap.create();
-    private final Map<Identifier, RecipeEntry<?>> recipesById = new HashMap<>();
+    private final Multimap<RecipeType<?>, RecipeHolder<?>> recipes = HashMultimap.create();
+    private final Map<ResourceLocation, RecipeHolder<?>> recipesById = new HashMap<>();
 
     public RecipeInjector(RecipeManager manager) {
         this.manager = manager;
@@ -49,29 +48,29 @@ public final class RecipeInjector {
     /**
      * Attempts to register a given recipe for addition to the recipe manager if
      * 1. Such recipe has a registered {@link RecipeType}
-     * 2. Such is found to not have an existing Identifier within {@link RecipeManager}
+     * 2. Such is found to not have an existing ResourceLocation within {@link RecipeManager}
      *
      * @param recipe The Recipe
      * @param <T>    Type of the given Recipe
      */
-    public <R extends Recipe<T>, T extends RecipeInput> void addRecipe(Identifier id, R recipe) {
-        if (Registries.RECIPE_TYPE.getId(recipe.getType()) == null) {
+    public <R extends Recipe<T>, T extends RecipeInput> void addRecipe(ResourceLocation id, R recipe) {
+        if (BuiltInRegistries.RECIPE_TYPE.getKey(recipe.getType()) == null) {
             throw new IllegalStateException("Unable to add Recipe for a RecipeType not registered!");
         }
 
         var type = (RecipeType<R>) recipe.getType();
 
-        var bl = manager.listAllOfType(type)
+        var bl = manager.getAllRecipesFor(type)
                 .stream()
                 .anyMatch(recipeEntry -> id.equals(recipeEntry.id()));
 
         if (bl) {
-            LOGGER.error("[RecipeInjector]: Unable to add a given recipe due to being the same Identifier with the given Type. [ID: {}]", id);
+            LOGGER.error("[RecipeInjector]: Unable to add a given recipe due to being the same ResourceLocation with the given Type. [ID: {}]", id);
 
             return;
         }
 
-        var recipeEntry = new RecipeEntry<>(id, recipe);
+        var recipeEntry = new RecipeHolder<>(id, recipe);
 
         recipes.put(recipe.getType(), recipeEntry);
         recipesById.put(id, recipeEntry);
@@ -84,7 +83,7 @@ public final class RecipeInjector {
         return this.manager;
     }
 
-    public RegistryWrapper.WrapperLookup lookup() {
+    public HolderLookup.Provider lookup() {
         return ((RecipeManagerAccessor) this.manager).af$getRegistryLookup();
     }
 

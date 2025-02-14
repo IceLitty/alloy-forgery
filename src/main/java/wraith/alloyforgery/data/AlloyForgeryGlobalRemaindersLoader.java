@@ -7,22 +7,22 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.format.gson.GsonDeserializer;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.resource.JsonDataLoader;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.slf4j.Logger;
 import wraith.alloyforgery.AlloyForgery;
 import wraith.alloyforgery.recipe.AlloyForgeRecipe;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AlloyForgeryGlobalRemaindersLoader extends JsonDataLoader implements IdentifiableResourceReloadListener {
+public class AlloyForgeryGlobalRemaindersLoader extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
 
-    private static final Endec<ItemStack> RECIPE_RESULT_ENDEC = CodecUtils.toEndec(ItemStack.VALIDATED_CODEC);
+    private static final Endec<ItemStack> RECIPE_RESULT_ENDEC = CodecUtils.toEndec(ItemStack.STRICT_CODEC);
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -33,20 +33,20 @@ public class AlloyForgeryGlobalRemaindersLoader extends JsonDataLoader implement
     }
 
     @Override
-    protected void apply(Map<Identifier, JsonElement> prepared, ResourceManager manager, Profiler profiler) {
+    protected void apply(Map<ResourceLocation, JsonElement> prepared, ResourceManager manager, ProfilerFiller profiler) {
         prepared.forEach((identifier, jsonElement) -> {
             try {
                 if (jsonElement instanceof JsonObject jsonObject) {
                     var remainders = new HashMap<Item, ItemStack>();
 
-                    for (var remainderEntry : JsonHelper.getObject(jsonObject, "remainders").entrySet()) {
-                        var item = JsonHelper.asItem(new JsonPrimitive(remainderEntry.getKey()), remainderEntry.getKey()).value();
+                    for (var remainderEntry : GsonHelper.getAsJsonObject(jsonObject, "remainders").entrySet()) {
+                        var item = GsonHelper.convertToItem(new JsonPrimitive(remainderEntry.getKey()), remainderEntry.getKey()).value();
 
                         if (remainderEntry.getValue().isJsonObject()) {
                             var remainderStack = RECIPE_RESULT_ENDEC.decodeFully(GsonDeserializer::of, remainderEntry.getValue().getAsJsonObject());
                             remainders.put(item, remainderStack);
                         } else {
-                            var remainderItem = JsonHelper.asItem(remainderEntry.getValue(), "item").value();
+                            var remainderItem = GsonHelper.convertToItem(remainderEntry.getValue(), "item").value();
                             remainders.put(item, new ItemStack(remainderItem));
                         }
                     }
@@ -62,7 +62,7 @@ public class AlloyForgeryGlobalRemaindersLoader extends JsonDataLoader implement
     }
 
     @Override
-    public Identifier getFabricId() {
-        return Identifier.of(AlloyForgery.MOD_ID, "forge_remainder");
+    public ResourceLocation getFabricId() {
+        return ResourceLocation.fromNamespaceAndPath(AlloyForgery.MOD_ID, "forge_remainder");
     }
 }

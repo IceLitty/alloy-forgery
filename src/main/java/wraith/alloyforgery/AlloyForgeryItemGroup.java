@@ -4,8 +4,8 @@ import io.wispforest.owo.itemgroup.Icon;
 import io.wispforest.owo.itemgroup.OwoItemGroup;
 import io.wispforest.owo.itemgroup.gui.ItemGroupButton;
 import io.wispforest.owo.itemgroup.gui.ItemGroupTab;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
 import wraith.alloyforgery.block.ForgeControllerBlock;
 import wraith.alloyforgery.forges.ForgeRegistry;
 import java.util.*;
@@ -18,9 +18,9 @@ public class AlloyForgeryItemGroup {
         if (CONTROLLER_CACHE == null) return null;
         return Icon.of(CONTROLLER_CACHE.get(0));
     }).initializer(group -> {
-        group.tabs.add(new ItemGroupTab(Icon.of(ItemStack.EMPTY), Text.empty(), (context, entries) -> {
+        group.tabs.add(new ItemGroupTab(Icon.of(ItemStack.EMPTY), Component.empty(), (context, entries) -> {
             if (CONTROLLER_CACHE == null) createControllerCache();
-            CONTROLLER_CACHE.forEach(entries::add);
+            CONTROLLER_CACHE.forEach(entries::accept);
         }, ItemGroupTab.DEFAULT_TEXTURE, true));
 
         group.addButton(ItemGroupButton.github(group, "https://github.com/LordDeatHunter/Alloy-Forgery"));
@@ -34,7 +34,7 @@ public class AlloyForgeryItemGroup {
         blockList.sort(Comparator.comparingInt(value -> ((ForgeControllerBlock) value).forgeDefinition.forgeTier()));
 
         CONTROLLER_CACHE = new ArrayList<>(blockList.size());
-        blockList.forEach(block -> CONTROLLER_CACHE.add(block.asItem().getDefaultStack()));
+        blockList.forEach(block -> CONTROLLER_CACHE.add(block.asItem().getDefaultInstance()));
     }
 
 }

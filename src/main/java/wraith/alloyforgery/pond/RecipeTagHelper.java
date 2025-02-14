@@ -1,7 +1,7 @@
 package wraith.alloyforgery.pond;
 
-import net.minecraft.recipe.Recipe;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.resources.ResourceLocation;
 import wraith.alloyforgery.data.RecipeTagLoader;
 import wraith.alloyforgery.mixin.RecipeEntryMixin;
 
@@ -11,7 +11,7 @@ import wraith.alloyforgery.mixin.RecipeEntryMixin;
  */
 public interface RecipeTagHelper {
 
-    default boolean isIn(Identifier tag) {
+    default boolean isIn(ResourceLocation tag) {
         throw new UnsupportedOperationException("RecipeTagHelper 'isIn' method not implememnted!");
     }
 }

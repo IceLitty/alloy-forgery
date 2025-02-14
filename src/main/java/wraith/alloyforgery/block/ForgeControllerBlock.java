@@ -6,41 +6,45 @@ import io.wispforest.owo.particles.ClientParticles;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorageUtil;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.*;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.*;
-import net.minecraft.text.Text;
-import net.minecraft.util.*;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.*;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import wraith.alloyforgery.AlloyForgery;
 import wraith.alloyforgery.forges.ForgeDefinition;
 import wraith.alloyforgery.forges.ForgeFuelRegistry;
 
-public class ForgeControllerBlock extends BlockWithEntity {
+public class ForgeControllerBlock extends BaseEntityBlock {
 
-    public static final BooleanProperty LIT = Properties.LIT;
-    public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+    public static final BooleanProperty LIT = BlockStateProperties.LIT;
+    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public final ForgeDefinition forgeDefinition;
 
     public ForgeControllerBlock(ForgeDefinition forgeDefinition) {
         super(FabricBlockSettings.copyOf(Blocks.BLACKSTONE));
         this.forgeDefinition = forgeDefinition;
-        this.setDefaultState(this.getStateManager().getDefaultState().with(LIT, false));
+        this.defaultBlockState().setValue(LIT, false);
     }
 
     @Override
-    protected MapCodec<? extends BlockWithEntity> getCodec() {
+    protected MapCodec<? extends BaseEntityBlock> codec() {
         return CodecUtils.toMapCodec(
                 StructEndecBuilder.of(
                         ForgeDefinition.FORGE_DEFINITION.fieldOf("forge_definition", s -> forgeDefinition),
@@ -49,103 +53,103 @@ public class ForgeControllerBlock extends BlockWithEntity {
     }
 
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack playerStack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!world.isClient) {
+    protected ItemInteractionResult useItemOn(ItemStack playerStack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!world.isClientSide) {
             final var fuelDefinition = ForgeFuelRegistry.getFuelForItem(playerStack.getItem());
-            if (!(world.getBlockEntity(pos) instanceof ForgeControllerBlockEntity controller)) return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            if (!(world.getBlockEntity(pos) instanceof ForgeControllerBlockEntity controller)) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
             if (fuelDefinition.hasReturnType() && controller.canAddFuel(fuelDefinition.fuel())) {
-                if (!player.getAbilities().creativeMode) {
-                    player.getStackInHand(hand).decrement(1);
-                    player.getInventory().offerOrDrop(new ItemStack(fuelDefinition.returnType()));
+                if (!player.getAbilities().instabuild) {
+                    player.getItemInHand(hand).shrink(1);
+                    player.getInventory().placeItemBackInInventory(new ItemStack(fuelDefinition.returnType()));
                 }
                 controller.addFuel(fuelDefinition.fuel());
             } else if (FluidStorageUtil.interactWithFluidStorage(controller, player, hand)) {
-                return ItemActionResult.SUCCESS;
+                return ItemInteractionResult.SUCCESS;
             } else {
                 if (!controller.verifyMultiblock()) {
-                    player.sendMessage(Text.translatable("message.alloy_forgery.invalid_multiblock").formatted(Formatting.GRAY), true);
-                    return ItemActionResult.SUCCESS;
+                    player.displayClientMessage(Component.translatable("message.alloy_forgery.invalid_multiblock").withStyle(ChatFormatting.GRAY), true);
+                    return ItemInteractionResult.SUCCESS;
                 }
 
-                final var screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
+                final var screenHandlerFactory = state.getMenuProvider(world, pos);
                 if (screenHandlerFactory != null) {
-                    player.openHandledScreen(screenHandlerFactory);
+                    player.openMenu(screenHandlerFactory);
                 }
             }
         }
 
-        return ItemActionResult.SUCCESS;
+        return ItemInteractionResult.SUCCESS;
     }
 
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
         if (state.getBlock() != newState.getBlock()) {
             if (world.getBlockEntity(pos) instanceof ForgeControllerBlockEntity forgeController) {
-                ItemScatterer.spawn(world, pos, forgeController);
-                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), forgeController.getFuelStack());
+                Containers.dropContents(world, pos, forgeController);
+                Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), forgeController.getFuelStack());
             }
-            super.onStateReplaced(state, world, pos, newState, moved);
+            super.onRemove(state, world, pos, newState, moved);
         }
     }
 
     @Override
-    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
-        if (!state.get(LIT)) return;
+    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+        if (!state.getValue(LIT)) return;
 
-        final BlockPos center = pos.offset(state.get(FACING).getOpposite());
+        final BlockPos center = pos.relative(state.getValue(FACING).getOpposite());
 
         ClientParticles.setParticleCount(2);
-        ClientParticles.setVelocity(new Vec3d(0, 0.1, 0));
+        ClientParticles.setVelocity(new Vec3(0, 0.1, 0));
         ClientParticles.spawnWithinBlock(ParticleTypes.CAMPFIRE_COSY_SMOKE, world, center);
 
         ClientParticles.setParticleCount(5);
-        ClientParticles.setVelocity(new Vec3d(0, 0.1, 0));
+        ClientParticles.setVelocity(new Vec3(0, 0.1, 0));
         ClientParticles.spawnWithinBlock(ParticleTypes.LARGE_SMOKE, world, center);
 
         if (random.nextDouble() > 0.65) {
             ClientParticles.setParticleCount(1);
-            ClientParticles.setVelocity(new Vec3d(0, 0.01, 0));
+            ClientParticles.setVelocity(new Vec3(0, 0.01, 0));
             ClientParticles.spawnWithinBlock(ParticleTypes.CAMPFIRE_COSY_SMOKE, world, center);
         }
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(LIT, FACING);
     }
 
     @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return world.isClient ? null : validateTicker(type, AlloyForgery.FORGE_CONTROLLER_BLOCK_ENTITY, (world1, pos, state1, blockEntity) -> blockEntity.tick());
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
+        return world.isClientSide ? null : createTickerHelper(type, AlloyForgery.FORGE_CONTROLLER_BLOCK_ENTITY, (world1, pos, state1, blockEntity) -> blockEntity.tick());
     }
 
     @Nullable
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing().getOpposite());
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite());
     }
 
     @Override
-    public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+    public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
         if (!(world.getBlockEntity(pos) instanceof ForgeControllerBlockEntity controller)) return 0;
         return controller.getCurrentSmeltTime() == 0 ? 0 : Math.max(1, Math.round(controller.getSmeltProgress() * 0.46875f));
     }
 
     @Override
-    public boolean hasComparatorOutput(BlockState state) {
+    public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
     @Nullable
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new ForgeControllerBlockEntity(pos, state);
     }
 }

@@ -4,7 +4,7 @@ import me.shedaniel.rei.api.common.transfer.info.MenuInfoContext;
 import me.shedaniel.rei.api.common.transfer.info.clean.InputCleanHandler;
 import me.shedaniel.rei.api.common.transfer.info.simple.SimplePlayerInventoryMenuInfo;
 import me.shedaniel.rei.api.common.transfer.info.stack.SlotAccessor;
-import net.minecraft.inventory.Inventory;
+import net.minecraft.world.Container;
 import wraith.alloyforgery.AlloyForgeScreenHandler;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +13,10 @@ public record AlloyForgeryMenuInfo(AlloyForgingDisplay display) implements Simpl
 
     @Override
     public Iterable<SlotAccessor> getInputSlots(MenuInfoContext<AlloyForgeScreenHandler, ?, AlloyForgingDisplay> context) {
-        Inventory inventory = context.getMenu().getControllerInventory();
+        Container inventory = context.getMenu().getControllerInventory();
 
-        List<SlotAccessor> list = new ArrayList<>(inventory.size() - 2);
-        for (int i = 0; i < inventory.size() - 2; i++) {
+        List<SlotAccessor> list = new ArrayList<>(inventory.getContainerSize() - 2);
+        for (int i = 0; i < inventory.getContainerSize() - 2; i++) {
             list.add(SlotAccessor.fromContainer(inventory, i));
         }
 
