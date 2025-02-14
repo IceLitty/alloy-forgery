@@ -64,10 +64,10 @@ public class AlloyForgery implements ModInitializer {
 
     public AlloyForgery(ModContainer modContainer, IEventBus bus) {
         // TODO ICY: move to register
-        onInitialize();
-        if (FMLLoader.getDist() == Dist.CLIENT) {
-            new AlloyForgeryClient().onInitializeClient();
-        }
+//        onInitialize();
+//        if (FMLLoader.getDist() == Dist.CLIENT) {
+//            new AlloyForgeryClient().onInitializeClient();
+//        }
     }
 
     @SuppressWarnings("UnstableApiUsage")

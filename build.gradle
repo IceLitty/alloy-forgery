@@ -62,9 +62,12 @@ dependencies {
 //    implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
     annotationProcessor implementation("io.wispforest:owo-lib-neoforge:${project.owo_version}")
-    implementation(jarJar("io.wispforest:owo-sentinel:${project.owo_fabric_version}"))
+//    implementation(jarJar("io.wispforest:owo-sentinel:${project.owo_fabric_version}")) {
+//        exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api'
+//        exclude group: 'net.fabricmc', module: 'fabric-loader'
+//    }
 
-    implementation "org.sinytra.forgified-fabric-api:forgified-fabric-api:0.107.0+2.0.22+1.21.1"
+    compileOnly "org.sinytra.forgified-fabric-api:forgified-fabric-api:0.107.0+2.0.22+1.21.1"
 
     compileOnly ("dev.emi:emi-neoforge:${emi_version}")
 //    runtimeOnly ("dev.emi:emi-fabric:${emi_version}")
