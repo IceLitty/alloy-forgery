@@ -4,6 +4,7 @@ import io.wispforest.owo.itemgroup.Icon;
 import io.wispforest.owo.itemgroup.OwoItemGroup;
 import io.wispforest.owo.itemgroup.gui.ItemGroupButton;
 import io.wispforest.owo.itemgroup.gui.ItemGroupTab;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import wraith.alloyforgery.block.ForgeControllerBlock;
@@ -17,7 +18,9 @@ public class AlloyForgeryItemGroup {
     public static final OwoItemGroup GROUP = OwoItemGroup.builder(AlloyForgery.id("alloy_forgery"), () -> {
         if (CONTROLLER_CACHE == null) return null;
         return Icon.of(CONTROLLER_CACHE.get(0));
-    }).initializer(group -> {
+    })
+    .backgroundTexture(CreativeModeTab.createTextureLocation("items"))
+    .initializer(group -> {
         group.tabs.add(new ItemGroupTab(Icon.of(ItemStack.EMPTY), Component.empty(), (context, entries) -> {
             if (CONTROLLER_CACHE == null) createControllerCache();
             CONTROLLER_CACHE.forEach(entries::accept);

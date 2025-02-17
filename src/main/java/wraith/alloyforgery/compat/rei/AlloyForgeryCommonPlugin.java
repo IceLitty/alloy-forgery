@@ -5,9 +5,11 @@ import me.shedaniel.rei.api.common.display.DisplaySerializerRegistry;
 import me.shedaniel.rei.api.common.plugins.REIServerPlugin;
 import me.shedaniel.rei.api.common.transfer.info.MenuInfoRegistry;
 import me.shedaniel.rei.api.common.transfer.info.simple.SimpleMenuInfoProvider;
+import me.shedaniel.rei.forge.REIPluginCommon;
 import wraith.alloyforgery.AlloyForgeScreenHandler;
 import wraith.alloyforgery.AlloyForgery;
 
+@REIPluginCommon
 public class AlloyForgeryCommonPlugin implements REIServerPlugin {
 
     public static final CategoryIdentifier<AlloyForgingDisplay> ID = CategoryIdentifier.of(AlloyForgery.id("forging"));

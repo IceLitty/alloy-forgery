@@ -8,17 +8,43 @@
 
   "tooltip.alloy_forgery.forge_tier": "等级：%d",
   "tooltip.alloy_forgery.fuel_capacity": "燃料容量：%d",
+  "tooltip.alloy_forgery.invalid_tier": "此配方需要等级为 %d 的冶炼控制器",
 
   "container.alloy_forgery.forge_controller": "合金冶炼炉",
 
-  "container.alloy_forgery.rei.title": "冶炼合金",
+  "container.alloy_forgery.rei.title": "合金冶炼",
   "container.alloy_forgery.rei.min_tier": "冶炼炉等级要求：%d",
-  "container.alloy_forgery.rei.fuel_per_tick": "燃料消耗：%d/tick",
+  "container.alloy_forgery.rei.fuel_per_tick": "燃料消耗：%d/刻",
+  "container.alloy_forgery.rei.button": "覆盖循环等级",
 
-  "message.alloy_forgery.invalid_multiblock": "多方块结构无效",
-  "itemGroup.alloy_forgery.alloy_forgery": "合金冶炼炉",
+  "message.alloy_forgery.invalid_multiblock": "多方块结构配置无效",
+  "itemGroup.alloy_forgery.alloy_forgery": "冶炼合金",
   "itemGroup.alloy_forgery.alloy_forgery.button.discord": "Discord",
   "itemGroup.alloy_forgery.alloy_forgery.button.curseforge": "CurseForge",
   "itemGroup.alloy_forgery.alloy_forgery.button.modrinth": "Modrinth",
-  "itemGroup.alloy_forgery.alloy_forgery.button.github": "GitHub"
+  "itemGroup.alloy_forgery.alloy_forgery.button.github": "GitHub",
+
+  "emi.category.alloy_forgery.alloy_forge": "合金冶炼",
+
+  "tag.item.c.copper_ores": "铜矿石",
+  "tag.item.c.iron_ores": "铁矿石",
+  "tag.item.c.gold_ores": "金矿石",
+  "tag.item.c.raw_copper_blocks": "粗铜矿石块",
+  "tag.item.c.raw_iron_blocks": "粗铁矿石块",
+  "tag.item.c.raw_gold_blocks": "粗金矿石块",
+
+  "text.config.alloy_forgery.title": "合金冶炼配置",
+  "text.config.alloy_forgery.section.blasting_adaption": "高炉适配",
+
+  "text.config.alloy_forgery.option.allowHigherTierOutput": "允许更高等级输出",
+  "text.config.alloy_forgery.option.allowHigherTierOutput.tooltip": "切换是否启用所有配方的高等级输出适配",
+
+  "text.config.alloy_forgery.option.allowBlastingFurnaceAdaption": "允许高炉配方适配",
+  "text.config.alloy_forgery.option.allowBlastingFurnaceAdaption.tooltip": "切换是否启用所有高炉配方的适配",
+
+  "text.config.alloy_forgery.option.baseInputAmount": "基础输入数量",
+  "text.config.alloy_forgery.option.baseInputAmount.tooltip": "调整适配配方的基础输入数量",
+
+  "text.config.alloy_forgery.option.higherTierOutputIncrease": "额外等级输出数量",
+  "text.config.alloy_forgery.option.higherTierOutputAmount.tooltip": "调整达到等级3时增加的额外数量"
 }

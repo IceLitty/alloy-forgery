@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -26,6 +27,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLLoader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import wraith.alloyforgery.block.ForgeControllerBlockEntity;
 import wraith.alloyforgery.client.AlloyForgeryClient;
 import wraith.alloyforgery.compat.AlloyForgeryConfig;
@@ -36,16 +39,21 @@ import wraith.alloyforgery.forges.FuelDataLoader;
 import wraith.alloyforgery.recipe.*;
 import wraith.alloyforgery.utils.RecipeInjector;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 @Mod(AlloyForgery.MOD_ID)
 public class AlloyForgery implements ModInitializer {
 
     public static final OwoNetChannel CHANNEL = OwoNetChannel.create(id("main"));
 
     public static final String MOD_ID = "alloy_forgery";
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public static final AlloyForgeryConfig CONFIG = AlloyForgeryConfig.createAndLoad();
 
-    public static BlockEntityType<ForgeControllerBlockEntity> FORGE_CONTROLLER_BLOCK_ENTITY = BlockEntityType.Builder.of(ForgeControllerBlockEntity::new).build(null);
+    public static BlockEntityType<ForgeControllerBlockEntity> FORGE_CONTROLLER_BLOCK_ENTITY;
+    public static final List<Block> FORGE_CONTROLLER_BLOCK_ENTITY_BLOCK_LIST = new CopyOnWriteArrayList<>();
     public static MenuType<AlloyForgeScreenHandler> ALLOY_FORGE_SCREEN_HANDLER_TYPE;
 
     private static final ParticleSystemController CONTROLLER = new ParticleSystemController(id("particles"));
@@ -63,11 +71,10 @@ public class AlloyForgery implements ModInitializer {
     });
 
     public AlloyForgery(ModContainer modContainer, IEventBus bus) {
-        // TODO ICY: move to register
-//        onInitialize();
-//        if (FMLLoader.getDist() == Dist.CLIENT) {
-//            new AlloyForgeryClient().onInitializeClient();
-//        }
+        onInitialize();
+        if (FMLLoader.getDist() == Dist.CLIENT) {
+            new AlloyForgeryClient().onInitializeClient();
+        }
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -90,6 +97,9 @@ public class AlloyForgery implements ModInitializer {
         RecipeInjector.ADD_RECIPES.register(new BlastFurnaceRecipeAdapter());
 
         ModDataLoader.load(ForgeRegistry.Loader.INSTANCE);
+        Block[] blocks = FORGE_CONTROLLER_BLOCK_ENTITY_BLOCK_LIST.toArray(Block[]::new);
+        LOGGER.warn("AlloyForgery loaded {} controller blocks", FORGE_CONTROLLER_BLOCK_ENTITY_BLOCK_LIST);
+        FORGE_CONTROLLER_BLOCK_ENTITY = BlockEntityType.Builder.of(ForgeControllerBlockEntity::new, blocks).build(null);
 
         Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("forge_controller"), FORGE_CONTROLLER_BLOCK_ENTITY);
 

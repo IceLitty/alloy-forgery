@@ -103,7 +103,7 @@ public class AlloyForgeryEmiRecipe implements EmiRecipe {
             } else {
                 AlloyForgeRecipe.OverrideRange range = overridesKeys.get(currentIndex - 1);
 
-                tierArg = range;
+                tierArg = range.lowerBound();
                 currentStack = EmiStack.of(overrides.get(range));
             }
 

@@ -72,7 +72,7 @@ public class ForgeRegistry {
     private static void store(ResourceLocation id, ForgeDefinition definition, ForgeControllerBlock block) {
         FORGE_DEFINITION_REGISTRY.put(id, definition);
         CONTROLLER_BLOCK_REGISTRY.put(id, block);
-        AlloyForgery.FORGE_CONTROLLER_BLOCK_ENTITY.addSupportedBlock(block); // TODO ICY: how to do that??
+        AlloyForgery.FORGE_CONTROLLER_BLOCK_ENTITY_BLOCK_LIST.add(block);
     }
 
     public static final class Loader implements ModDataConsumer {

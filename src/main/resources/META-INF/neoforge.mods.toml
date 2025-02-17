@@ -20,42 +20,49 @@ description = '''
 Configurable, data-driven Alloy Forges for all your smelting needs
 '''
 
-[[dependencies.tacz]]
+[[dependencies.alloy_forgery]]
 modId = "neoforge"
 type="required"
 versionRange = "[21.1.0,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.tacz]]
+[[dependencies.alloy_forgery]]
 modId = "minecraft"
 type="required"
 versionRange = "[1.21.1,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.tacz]]
+[[dependencies.alloy_forgery]]
 modId = "owo"
 type="required"
 versionRange = "[0.12.11,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.tacz]]
+[[dependencies.alloy_forgery]]
+modId = "fabric_api"
+type="required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.alloy_forgery]]
 modId = "craft-this-from-that"
 type="optional"
 versionRange = "*"
 ordering = "NONE"
 side = "CLIENT"
 
-[[dependencies.tacz]]
+[[dependencies.alloy_forgery]]
 modId = "mythicmetals"
 type="optional"
 versionRange = "*"
 ordering = "NONE"
 side = "CLIENT"
 
-[[dependencies.tacz]]
+[[dependencies.alloy_forgery]]
 modId = "roughlyenoughitems"
 type="optional"
 versionRange = "[14.0.0,)"

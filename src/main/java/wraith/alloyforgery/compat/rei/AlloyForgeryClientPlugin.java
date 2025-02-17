@@ -6,10 +6,12 @@ import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
 import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
 import me.shedaniel.rei.api.common.util.EntryStacks;
+import me.shedaniel.rei.forge.REIPluginClient;
 import wraith.alloyforgery.client.AlloyForgeScreen;
 import wraith.alloyforgery.forges.ForgeRegistry;
 import wraith.alloyforgery.recipe.AlloyForgeRecipe;
 
+@REIPluginClient
 public class AlloyForgeryClientPlugin implements REIClientPlugin {
 
     @Override

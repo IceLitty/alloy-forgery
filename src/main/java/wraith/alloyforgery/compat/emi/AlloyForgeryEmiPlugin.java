@@ -1,5 +1,6 @@
 package wraith.alloyforgery.compat.emi;
 
+import dev.emi.emi.api.EmiEntrypoint;
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
@@ -11,6 +12,7 @@ import wraith.alloyforgery.AlloyForgery;
 import wraith.alloyforgery.forges.ForgeRegistry;
 import wraith.alloyforgery.recipe.AlloyForgeRecipe;
 
+@EmiEntrypoint
 public class AlloyForgeryEmiPlugin implements EmiPlugin {
 
     private static final ResourceLocation FORGE_ID = AlloyForgery.id("alloy_forge");
