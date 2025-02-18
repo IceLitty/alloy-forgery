@@ -61,7 +61,7 @@ dependencies {
 
 //    implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
-    annotationProcessor implementation("io.wispforest:owo-lib-neoforge:${project.owo_version}")
+    annotationProcessor compileOnly("io.wispforest:owo-lib-neoforge:${project.owo_version}")
 //    implementation(jarJar("io.wispforest:owo-sentinel:${project.owo_fabric_version}")) {
 //        exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api'
 //        exclude group: 'net.fabricmc', module: 'fabric-loader'

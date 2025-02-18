@@ -1,10 +1,7 @@
 package wraith.alloyforgery;
 
 import io.wispforest.endec.Endec;
-import io.wispforest.owo.client.screens.ScreenInternals;
-import io.wispforest.owo.client.screens.ScreenUtils;
-import io.wispforest.owo.client.screens.SlotGenerator;
-import io.wispforest.owo.client.screens.SyncedProperty;
+import io.wispforest.owo.client.screens.*;
 import io.wispforest.owo.util.EventStream;
 import io.wispforest.owo.util.pond.OwoScreenHandlerExtension;
 import net.minecraft.world.entity.player.Player;
@@ -45,8 +42,15 @@ public class AlloyForgeScreenHandler extends AbstractContainerMenu {
 
     private final SyncedProperty<Set<Integer>> disabledSlots;
 
+    private final OwoScreenHandler mixin;
+
     public AlloyForgeScreenHandler(int syncId, Inventory playerInventory, ForgeControllerBlockEntity forge) {
         super(AlloyForgery.ALLOY_FORGE_SCREEN_HANDLER_TYPE, syncId);
+
+        if (!(this instanceof OwoScreenHandler)) {
+            throw new RuntimeException("Can not resolve owo-lib because AbstractContainerMenu is not implements by OwoScreenHandler");
+        }
+        mixin = (OwoScreenHandler) this;
 
         this.isServer = playerInventory.player instanceof ServerPlayer;
 
@@ -88,7 +92,7 @@ public class AlloyForgeScreenHandler extends AbstractContainerMenu {
 
         return (SyncedProperty<Set<T>>) (Object) createProperty(
                 Set.class,
-                (Endec<Set>) this.endecBuilder().get(type),
+                (Endec<Set>) mixin.endecBuilder().get(type),
                 provider,
                 observableProviderFunc.andThen(listExtObservable -> (ExtObservable<Set>) (Object) listExtObservable),
                 set -> new HashSet<>(set),
@@ -100,7 +104,7 @@ public class AlloyForgeScreenHandler extends AbstractContainerMenu {
 
         return (SyncedProperty<List<T>>) (Object) createProperty(
                 List.class,
-                (Endec<List>) this.endecBuilder().get(type),
+                (Endec<List>) mixin.endecBuilder().get(type),
                 provider,
                 observableProviderFunc.andThen(listExtObservable -> (ExtObservable<List>) (Object) listExtObservable),
                 list -> new ArrayList<>(list),
@@ -118,25 +122,25 @@ public class AlloyForgeScreenHandler extends AbstractContainerMenu {
     }
 
     public <P, T> SyncedProperty<T> createProperty(Class<T> clazz, @Nullable P provider, Function<P, ExtObservable<T>> observableProviderFunc, T initial) {
-        return createProperty(clazz, this.endecBuilder().get(clazz), provider, observableProviderFunc, t -> t, initial);
+        return createProperty(clazz, mixin.endecBuilder().get(clazz), provider, observableProviderFunc, t -> t, initial);
     }
 
     public <P, T> SyncedProperty<T> createProperty(Class<T> clazz, @Nullable P provider, Function<P, ExtObservable<T>> observableProviderFunc, Function<T, T> cloneFunc, T initial) {
-        return createProperty(clazz, this.endecBuilder().get(clazz), provider, observableProviderFunc, cloneFunc, initial);
+        return createProperty(clazz, mixin.endecBuilder().get(clazz), provider, observableProviderFunc, cloneFunc, initial);
     }
 
     public <P, T> SyncedProperty<T> createProperty(Class<T> clazz, Endec<T> endec, @Nullable P provider, Function<P, ExtObservable<T>> observableProviderFunc, Function<T, T> cloneFunc, T initial) {
         return (provider != null && this.isServer)
                 ? createProperty(clazz, endec, observableProviderFunc.apply(provider), cloneFunc)
-                : createProperty(clazz, endec, initial);
+                : mixin.createProperty(clazz, endec, initial);
     }
 
     public <T> SyncedProperty<T> createProperty(Class<T> clazz, ExtObservable<T> initial, Function<T, T> cloneFunc) {
-        return createProperty(clazz, this.endecBuilder().get(clazz), initial, cloneFunc);
+        return createProperty(clazz, mixin.endecBuilder().get(clazz), initial, cloneFunc);
     }
 
     public <T> SyncedProperty<T> createProperty(Class<T> clazz, Endec<T> endec, ExtObservable<T> initial, Function<T, T> cloneFunc) {
-        var property = this.createProperty(clazz, endec, cloneFunc.apply(initial.get()));
+        var property = mixin.createProperty(clazz, endec, cloneFunc.apply(initial.get()));
 
         property.markDirty();
 

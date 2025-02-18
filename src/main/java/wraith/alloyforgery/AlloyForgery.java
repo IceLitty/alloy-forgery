@@ -103,7 +103,7 @@ public class AlloyForgery implements ModInitializer {
 
         ForgeDefinition.initLoaders();
         Block[] blocks = FORGE_CONTROLLER_BLOCK_ENTITY_BLOCK_LIST.toArray(Block[]::new);
-        LOGGER.warn("AlloyForgery loaded {} controller blocks", FORGE_CONTROLLER_BLOCK_ENTITY_BLOCK_LIST);
+        LOGGER.info("AlloyForgery loaded {} controller blocks", FORGE_CONTROLLER_BLOCK_ENTITY_BLOCK_LIST);
         FORGE_CONTROLLER_BLOCK_ENTITY = BlockEntityType.Builder.of(ForgeControllerBlockEntity::new, blocks).build(null);
 
         Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("forge_controller"), FORGE_CONTROLLER_BLOCK_ENTITY);

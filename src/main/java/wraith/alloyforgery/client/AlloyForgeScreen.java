@@ -1,5 +1,6 @@
 package wraith.alloyforgery.client;
 
+import io.wispforest.owo.client.screens.OwoScreenHandler;
 import io.wispforest.owo.ui.base.BaseUIModelHandledScreen;
 import io.wispforest.owo.ui.base.BaseUIModelScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
@@ -8,8 +9,11 @@ import io.wispforest.owo.ui.component.TextureComponent;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.PositionedRectangle;
 import io.wispforest.owo.ui.core.Sizing;
+import io.wispforest.owo.ui.inject.ComponentStub;
+import io.wispforest.owo.ui.util.MatrixStackTransformer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -56,20 +60,25 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
         this.progressGauge = layout.childById(TextureComponent.class, "progress-gauge");
         this.lavaBar = layout.childById(FlowLayout.class, "lava-bar");
 
-        layout.childById(ButtonComponent.class, "slot-toggle-btn")
-                .onPress(btn -> {
+        ButtonComponent component;
+        try {
+            component = (ButtonComponent) layout.childById((Class<io.wispforest.owo.ui.core.Component>) (Object) ButtonComponent.class, "slot-toggle-btn");
+        } catch (Exception e) {
+            throw new RuntimeException("Can not resolve owo-lib because AbstractWidget is not implements by ComponentStub", e);
+        }
+        component.onPress(btn -> {
                     this.allowSlotToggling = !allowSlotToggling;
 
-                    btn.tooltip(Component.translatable("tooltip.alloy_forgery.slot_toggle_" + (this.allowSlotToggling ? "enable" : "disable")));
+                    ((io.wispforest.owo.ui.core.Component) btn).tooltip(Component.translatable("tooltip.alloy_forgery.slot_toggle_" + (this.allowSlotToggling ? "enable" : "disable")));
                 })
                 .renderer((context, button, delta) -> {
                     ButtonComponent.Renderer.VANILLA.draw(context, button, delta);
 
-                    context.push().translate(-0.75, -0.75, 0);
+                    ((MatrixStackTransformer) context).push().translate(-0.75, -0.75, 0);
 
-                    context.drawCenteredTextWithShadow(Minecraft.getInstance().font, "⏻", button.x() + 8, button.y() + 4, 0xFFFFFFFF);
+                    context.drawCenteredString(Minecraft.getInstance().font, "⏻", ((ComponentStub) button).x() + 8, ((ComponentStub) button).y() + 4, 0xFFFFFFFF);
 
-                    context.pop();
+                    ((MatrixStackTransformer) context).pop();
                 });
     }
 
@@ -93,12 +102,12 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
         }
 
         if (this.allowSlotToggling
-                && this.focusedSlot instanceof ForgeInputSlot
+                && this.hoveredSlot instanceof ForgeInputSlot
                 && this.menu.getCarried().isEmpty()
-                && !this.focusedSlot.hasStack()
-                && !this.menu.player().isSpectator()) {
+                && !this.hoveredSlot.hasItem()
+                && !((OwoScreenHandler) this.menu).player().isSpectator()) {
 
-            if (this.menu.isSlotDisabled(this.focusedSlot)) {
+            if (this.menu.isSlotDisabled(this.hoveredSlot)) {
                 context.renderTooltip(this.font, DISABLED_SLOT_TEXT, mouseX, mouseY);
             } else {
                 context.renderTooltip(this.font, ENABLED_SLOT_TEXT, mouseX, mouseY);
@@ -108,10 +117,10 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
 
     @Override
     protected void slotClicked(Slot slot, int slotId, int button, ClickType actionType) {
-        var player = this.menu.player();
+        var player = ((OwoScreenHandler) this.menu).player();
 
         if(allowSlotToggling) {
-            if (slot instanceof ForgeInputSlot && !slot.hasStack() && !player.isSpectator()) {
+            if (slot instanceof ForgeInputSlot && !slot.hasItem() && !player.isSpectator()) {
                 switch (actionType) {
                     case PICKUP:
                         if (this.menu.isSlotDisabled(slot)) {
@@ -121,7 +130,7 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
                         }
                         break;
                     case SWAP:
-                        ItemStack itemStack = player.getInventory().getStack(button);
+                        ItemStack itemStack = player.getInventory().getItem(button);
                         if (this.menu.isSlotDisabled(slot) && !itemStack.isEmpty()) {
                             this.enableInputSlot(slot);
                         }
@@ -145,7 +154,7 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
 
         super.handleSlotStateChanged(slot.index, this.menu.containerId, enabled);
         float f = enabled ? 1.0F : 0.75F;
-        this.menu.player().playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4F, f);
+        ((OwoScreenHandler) this.menu).player().playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4F, f);
     }
 
     @Override
