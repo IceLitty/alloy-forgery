@@ -4,7 +4,7 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.network.ServerAccess;
-import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import wraith.alloyforgery.AlloyForgery;
 import wraith.alloyforgery.client.BlockEntityLocation;
 

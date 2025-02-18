@@ -48,11 +48,11 @@ public class AlloyForgeScreenHandler extends AbstractContainerMenu {
     public AlloyForgeScreenHandler(int syncId, Inventory playerInventory, ForgeControllerBlockEntity forge) {
         super(AlloyForgery.ALLOY_FORGE_SCREEN_HANDLER_TYPE, syncId);
 
-        this.isServer = playerInventory.player instanceof ServerPlayerEntity;
+        this.isServer = playerInventory.player instanceof ServerPlayer;
 
         this.forge = forge;
 
-        this.controllerInventory = (forge != null) ? forge : new SimpleInventory(ForgeControllerBlockEntity.INVENTORY_SIZE);
+        this.controllerInventory = (forge != null) ? forge : new SimpleContainer(ForgeControllerBlockEntity.INVENTORY_SIZE);
 
         this.smeltProgress = createProperty(Integer.class, forge, (provider) -> provider.smeltProgress, 0);
         this.fuelProgress = createProperty(Integer.class, forge, (provider) -> provider.fuelProgress, 0);
@@ -146,8 +146,8 @@ public class AlloyForgeScreenHandler extends AbstractContainerMenu {
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
+    public void removed(Player player) {
+        super.removed(player);
 
         this.onClosedEvent.sink().run();
     }
@@ -176,7 +176,7 @@ public class AlloyForgeScreenHandler extends AbstractContainerMenu {
     }
 
     public boolean isSlotDisabled(Slot slot) {
-        return this.disabledSlots.get().contains(slot.getIndex());
+        return this.disabledSlots.get().contains(slot.getContainerSlot());
     }
 
     @Override

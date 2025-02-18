@@ -21,7 +21,6 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -91,9 +90,9 @@ public class ForgeControllerBlockEntity extends BlockEntity implements Implement
     }
 
     public ForgeTier forgeTier() {
-        if (this.world == null) return ForgeTier.DEFAULT;
+        if (this.level == null) return ForgeTier.DEFAULT;
 
-        var tier = ForgeTierRegistry.getForgeRegistry(this.world.isClient()).getForgeTier(this.forgeDefinition);
+        var tier = ForgeTierRegistry.getForgeRegistry(this.level.isClientSide()).getForgeTier(this.forgeDefinition);
 
         if (tier == null) return ForgeTier.DEFAULT;
 
@@ -221,11 +220,11 @@ public class ForgeControllerBlockEntity extends BlockEntity implements Implement
 
         // Failsafe just incase something was within the disabled slot and was disabled
         for (var i : this.disabledSlots.get()) {
-            var stack = this.getStack(i);
+            var stack = this.getItem(i);
 
             if (!stack.isEmpty()) insertIntoHopperOrScatterAtFront(stack);
 
-            this.setStack(i, ItemStack.EMPTY);
+            this.setItem(i, ItemStack.EMPTY);
         }
 
         final var emptyFuelSpace = this.forgeTier().fuelCapacity() - this.fuel;
@@ -317,7 +316,7 @@ public class ForgeControllerBlockEntity extends BlockEntity implements Implement
 
     private boolean canSmelt(AlloyForgeRecipe recipe) {
         final var outputStack = this.getItem(10);
-        final var recipeOutput = recipe.getResult(this.forgeDefinition.forgeTier().value());
+        final var recipeOutput = recipe.getResult(this.forgeTier().value());
 
         if (recipe.getMinForgeTier() > this.forgeTier().value()) {
             this.requiredTierToCraft.set(recipe.getMinForgeTier());

@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.particles.ClientParticles;
 import io.wispforest.owo.serialization.CodecUtils;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorageUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.Containers;
@@ -16,6 +15,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.*;
@@ -38,7 +38,7 @@ public class ForgeControllerBlock extends BaseEntityBlock {
     public final ForgeDefinition forgeDefinition;
 
     public ForgeControllerBlock(ForgeDefinition forgeDefinition) {
-        super(Settings.copy(Blocks.BLACKSTONE));
+        super(BlockBehaviour.Properties.ofFullCopy(Blocks.BLACKSTONE));
         this.forgeDefinition = forgeDefinition;
         this.defaultBlockState().setValue(LIT, false);
     }

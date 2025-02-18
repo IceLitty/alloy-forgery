@@ -3,6 +3,7 @@ package wraith.alloyforgery.client;
 import io.wispforest.owo.ui.base.BaseUIModelHandledScreen;
 import io.wispforest.owo.ui.base.BaseUIModelScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
+import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.component.TextureComponent;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.PositionedRectangle;
@@ -66,7 +67,7 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
 
                     context.push().translate(-0.75, -0.75, 0);
 
-                    context.drawCenteredTextWithShadow(Minecraft.getInstance().textRenderer, "⏻", button.leftPos() + 8, button.topPos() + 4, 0xFFFFFFFF);
+                    context.drawCenteredTextWithShadow(Minecraft.getInstance().font, "⏻", button.x() + 8, button.y() + 4, 0xFFFFFFFF);
 
                     context.pop();
                 });
@@ -93,42 +94,42 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
 
         if (this.allowSlotToggling
                 && this.focusedSlot instanceof ForgeInputSlot
-                && this.handler.getCursorStack().isEmpty()
+                && this.menu.getCarried().isEmpty()
                 && !this.focusedSlot.hasStack()
-                && !this.handler.player().isSpectator()) {
+                && !this.menu.player().isSpectator()) {
 
-            if (this.handler.isSlotDisabled(this.focusedSlot)) {
-                context.drawTooltip(this.textRenderer, DISABLED_SLOT_TEXT, mouseX, mouseY);
+            if (this.menu.isSlotDisabled(this.focusedSlot)) {
+                context.renderTooltip(this.font, DISABLED_SLOT_TEXT, mouseX, mouseY);
             } else {
-                context.drawTooltip(this.textRenderer, ENABLED_SLOT_TEXT, mouseX, mouseY);
+                context.renderTooltip(this.font, ENABLED_SLOT_TEXT, mouseX, mouseY);
             }
         }
     }
 
     @Override
-    protected void onMouseClick(Slot slot, int slotId, int button, SlotActionType actionType) {
-        var player = this.handler.player();
+    protected void slotClicked(Slot slot, int slotId, int button, ClickType actionType) {
+        var player = this.menu.player();
 
         if(allowSlotToggling) {
             if (slot instanceof ForgeInputSlot && !slot.hasStack() && !player.isSpectator()) {
                 switch (actionType) {
                     case PICKUP:
-                        if (this.handler.isSlotDisabled(slot)) {
+                        if (this.menu.isSlotDisabled(slot)) {
                             this.enableInputSlot(slot);
-                        } else /*if (this.handler.getCursorStack().isEmpty())*/ {
+                        } else /*if (this.menu.getCarried().isEmpty())*/ {
                             this.disableInputSlot(slot);
                         }
                         break;
                     case SWAP:
                         ItemStack itemStack = player.getInventory().getStack(button);
-                        if (this.handler.isSlotDisabled(slot) && !itemStack.isEmpty()) {
+                        if (this.menu.isSlotDisabled(slot) && !itemStack.isEmpty()) {
                             this.enableInputSlot(slot);
                         }
                 }
             }
         }
 
-        super.onMouseClick(slot, slotId, button, actionType);
+        super.slotClicked(slot, slotId, button, actionType);
     }
 
     private void enableInputSlot(Slot slot) {
@@ -140,28 +141,28 @@ public class AlloyForgeScreen extends BaseUIModelHandledScreen<FlowLayout, Alloy
     }
 
     private void setSlotEnabled(Slot slot, boolean enabled) {
-        AlloyForgeNetworking.CHANNEL.clientHandle().send(new DisableSlotToggle(this.handler.forge, slot.getIndex(), !enabled));
+        AlloyForgeNetworking.CHANNEL.clientHandle().send(new DisableSlotToggle(this.menu.forge, slot.getContainerSlot(), !enabled));
 
-        super.onSlotChangedState(slot.id, this.handler.syncId, enabled);
+        super.handleSlotStateChanged(slot.index, this.menu.containerId, enabled);
         float f = enabled ? 1.0F : 0.75F;
-        this.handler.player().playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4F, f);
+        this.menu.player().playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4F, f);
     }
 
     @Override
-    public void drawSlot(DrawContext context, Slot slot) {
-        if (slot instanceof ForgeInputSlot crafterInputSlot && this.handler.isSlotDisabled(slot)) {
+    public void renderSlot(GuiGraphics context, Slot slot) {
+        if (slot instanceof ForgeInputSlot crafterInputSlot && this.menu.isSlotDisabled(slot)) {
             this.drawDisabledSlot(context, crafterInputSlot);
 
-            super.drawSlot(context, slot);
+            super.renderSlot(context, slot);
 
             return;
         }
 
-        super.drawSlot(context, slot);
+        super.renderSlot(context, slot);
     }
 
-    private void drawDisabledSlot(DrawContext context, ForgeInputSlot slot) {
-        context.drawTexture(DISABLED_SLOT_TEXTURE, slot.x - 1, slot.y - 1, 3, 0, 0, 18, 18, 18, 18);
+    private void drawDisabledSlot(GuiGraphics context, ForgeInputSlot slot) {
+        context.blit(DISABLED_SLOT_TEXTURE, slot.x - 1, slot.y - 1, 3, 0, 0, 18, 18, 18, 18);
     }
 
     public int rootX() {

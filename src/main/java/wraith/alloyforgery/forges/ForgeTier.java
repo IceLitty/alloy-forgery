@@ -2,7 +2,7 @@ package wraith.alloyforgery.forges;
 
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 
@@ -24,7 +24,7 @@ public record ForgeTier(int value, float speedMultiplier, int fuelCapacity, int 
         this(forgeTier, speedMultiplier, fuelCapacity, maxSmeltTime.orElse((int) (BASE_MAX_SMELT_TIME / speedMultiplier)));
     }
 
-    public Identifier tierId(boolean isClientSide) {
+    public ResourceLocation tierId(boolean isClientSide) {
         return ForgeTierRegistry.getForgeTierId(isClientSide, this);
     }
 }

@@ -4,8 +4,8 @@ import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.util.Identifier;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import wraith.alloyforgery.AlloyForgery;
@@ -34,35 +34,35 @@ public class ForgeTierRegistry {
     private static final EndecableDataLoader TIER_BINDING_LOADER = EndecableDataLoader.of(
             AlloyForgery.id("tier_binding"),
             "alloy_forge/tier_binding",
-            Endec.map(Identifier::toString, Identifier::tryParse, MinecraftEndecs.IDENTIFIER),
+            Endec.map(ResourceLocation::toString, ResourceLocation::tryParse, MinecraftEndecs.IDENTIFIER),
             (identifier, map) -> map.forEach(SERVER.forgeDefinitionToTier::putIfAbsent)
     ).addDependencies(TIER_DATA_LOADER.getFabricId());
 
     public static void initDataLoaders() {
-        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(TIER_DATA_LOADER);
-        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(TIER_BINDING_LOADER);
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(TIER_DATA_LOADER);
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(TIER_BINDING_LOADER);
 
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
             AlloyForgeNetworking.CHANNEL.serverHandle(player).send(new TierDataSync(SERVER.idToForgeTier(), SERVER.forgeDefinitionToTier()));
         });
     }
 
-    private final Map<Identifier, ForgeTier> idToForgeTier = new HashMap<>();
-    private final Map<ForgeTier, Identifier> forgeTierToId = new HashMap<>();
+    private final Map<ResourceLocation, ForgeTier> idToForgeTier = new HashMap<>();
+    private final Map<ForgeTier, ResourceLocation> forgeTierToId = new HashMap<>();
 
-    private final Map<Identifier, Identifier> forgeDefinitionToTier = new HashMap<>();
+    private final Map<ResourceLocation, ResourceLocation> forgeDefinitionToTier = new HashMap<>();
 
     public static ForgeTierRegistry getForgeRegistry(boolean isClientSide) {
         return (isClientSide) ? CLIENT : SERVER;
     }
 
     @Nullable
-    public static Identifier getForgeTierId(boolean isClientSide, ForgeTier forgeTier) {
+    public static ResourceLocation getForgeTierId(boolean isClientSide, ForgeTier forgeTier) {
         return getForgeRegistry(isClientSide).forgeTierToId().get(forgeTier);
     }
 
     @Nullable
-    public static ForgeTier getForgeTier(boolean isClientSide, Identifier tierId) {
+    public static ForgeTier getForgeTier(boolean isClientSide, ResourceLocation tierId) {
         return getForgeRegistry(isClientSide).idToForgeTier().get(tierId);
     }
 
@@ -74,26 +74,26 @@ public class ForgeTierRegistry {
                 .orElse(null);
     }
 
-    public Map<Identifier, ForgeTier> idToForgeTier() {
+    public Map<ResourceLocation, ForgeTier> idToForgeTier() {
         return Collections.unmodifiableMap(idToForgeTier);
     }
 
-    public Map<ForgeTier, Identifier> forgeTierToId() {
+    public Map<ForgeTier, ResourceLocation> forgeTierToId() {
         return Collections.unmodifiableMap(forgeTierToId);
     }
 
-    public Map<Identifier, Identifier> forgeDefinitionToTier() {
+    public Map<ResourceLocation, ResourceLocation> forgeDefinitionToTier() {
         return Collections.unmodifiableMap(forgeDefinitionToTier);
     }
 
     @ApiStatus.Internal
-    public void forgeDefinitionBindings(Map<Identifier, Identifier> forgeDefinitionToTier) {
+    public void forgeDefinitionBindings(Map<ResourceLocation, ResourceLocation> forgeDefinitionToTier) {
         this.forgeDefinitionToTier.clear();
         this.forgeDefinitionToTier.putAll(forgeDefinitionToTier);
     }
 
     @ApiStatus.Internal
-    public void setTierInfo(Map<Identifier, ForgeTier> idToForgeTier) {
+    public void setTierInfo(Map<ResourceLocation, ForgeTier> idToForgeTier) {
         this.idToForgeTier.clear();
         this.idToForgeTier.putAll(idToForgeTier);
 
