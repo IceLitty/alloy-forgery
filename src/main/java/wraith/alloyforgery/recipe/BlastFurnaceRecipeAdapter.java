@@ -56,7 +56,7 @@ public class BlastFurnaceRecipeAdapter implements RecipeInjector.AddRecipes {
                 path = path.replace("blasting", "forging");
             }
 
-            var mainOutput = recipe.getResultItem(null).copy(); // TODO ICY: use instance.lookup() instead of null ?
+            var mainOutput = recipe.getResultItem(null).copy();
 
             mainOutput.setCount(AlloyForgery.CONFIG.baseInputAmount());
 
