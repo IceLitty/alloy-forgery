@@ -10,6 +10,12 @@
   "tooltip.alloy_forgery.fuel_capacity": "燃料容量：%d",
   "tooltip.alloy_forgery.invalid_tier": "此配方需要等级为 %d 的冶炼控制器",
 
+  "tooltip.alloy_forgery.slot_toggle_enable": "停用槽位切换",
+  "tooltip.alloy_forgery.slot_toggle_disable": "启用槽位切换",
+
+  "tooltip.alloy_forgery.enabled_slot": "点击以关闭槽位",
+  "tooltip.alloy_forgery.disabled_slot": "点击以启用槽位",
+
   "container.alloy_forgery.forge_controller": "合金冶炼炉",
 
   "container.alloy_forgery.rei.title": "合金冶炼",
