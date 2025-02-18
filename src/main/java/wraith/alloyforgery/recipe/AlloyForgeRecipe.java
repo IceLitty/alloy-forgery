@@ -182,7 +182,7 @@ public class AlloyForgeRecipe implements Recipe<AlloyForgeRecipeInput> {
     @Override
     public ItemStack assemble(AlloyForgeRecipeInput input, HolderLookup.Provider lookup) {
         return (input.inventory() instanceof ForgeControllerBlockEntity controller)
-                ? getResult(controller.getForgeDefinition().forgeTier())
+                ? getResult(controller.getForgeDefinition().forgeTier().value())
                 : getResultItem(lookup);
     }
 

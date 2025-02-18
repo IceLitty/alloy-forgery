@@ -8,6 +8,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 import wraith.alloyforgery.block.ForgeControllerBlock;
 import wraith.alloyforgery.forges.ForgeDefinition;
+import wraith.alloyforgery.forges.ForgeTierRegistry;
+
 import java.util.List;
 
 public class ForgeControllerItem extends BlockItem {
@@ -18,8 +20,12 @@ public class ForgeControllerItem extends BlockItem {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
-        tooltip.add(Component.translatable("tooltip.alloy_forgery.forge_tier", getForgeDefinition().forgeTier()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.alloy_forgery.fuel_capacity", getForgeDefinition().fuelCapacity()).withStyle(ChatFormatting.GRAY));
+        var tier = ForgeTierRegistry.getForgeRegistry(true).getForgeTier(getForgeDefinition());
+
+        if (tier == null) return;
+
+        tooltip.add(Component.translatable("tooltip.alloy_forgery.forge_tier", tier.value()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable("tooltip.alloy_forgery.fuel_capacity", tier.fuelCapacity()).withStyle(ChatFormatting.GRAY));
     }
 
     public ForgeDefinition getForgeDefinition() {

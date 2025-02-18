@@ -12,6 +12,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.profiling.ProfilerFiller;
 import wraith.alloyforgery.AlloyForgery;
+import wraith.alloyforgery.networking.AlloyForgeNetworking;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,7 +75,7 @@ public class RecipeTagLoader extends SimplePreparableReloadListener<Map<Resource
         ServerLifecycleEvents.SERVER_STARTED.register(this);
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            AlloyForgery.CHANNEL.serverHandle(handler.player).send(TagPacket.of(RESOLVED_ENTRIES));
+            AlloyForgeNetworking.CHANNEL.serverHandle(handler.player).send(TagPacket.of(RESOLVED_ENTRIES));
         });
     }
 
@@ -83,7 +85,7 @@ public class RecipeTagLoader extends SimplePreparableReloadListener<Map<Resource
 
         resolveEntries(server);
 
-        AlloyForgery.CHANNEL.serverHandle(server).send(TagPacket.of(RESOLVED_ENTRIES));
+        AlloyForgeNetworking.CHANNEL.serverHandle(server).send(TagPacket.of(RESOLVED_ENTRIES));
     }
 
     @Override

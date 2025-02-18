@@ -2,24 +2,83 @@ package wraith.alloyforgery.forges;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.*;
+import com.mojang.serialization.JsonOps;
 import io.wispforest.endec.Endec;
+import io.wispforest.endec.StructEndec;
+import io.wispforest.endec.format.gson.GsonEndec;
+import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.moddata.ModDataLoader;
 import io.wispforest.owo.registration.ComplexRegistryAction;
 import io.wispforest.owo.registration.RegistryHelper;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.world.level.block.Block;
+import io.wispforest.endec.Endec;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
+import wraith.alloyforgery.AlloyForgery;
+import wraith.alloyforgery.utils.RecipeInjector;
+import wraith.alloyforgery.utils.data.EndecableModDataLoader;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-public record ForgeDefinition(int forgeTier,
-                              float speedMultiplier,
-                              int fuelCapacity,
-                              int maxSmeltTime,
-                              Block material,
-                              ImmutableList<Block> additionalMaterials) {
+public record ForgeDefinition(Block material, ImmutableList<Block> additionalMaterials, boolean blockEntity) {
 
-    public static final int BASE_MAX_SMELT_TIME = 200;
+    public ForgeDefinition(Block material, ImmutableList<Block> additionalMaterials) {
+        this(material, additionalMaterials, false);
+    }
+
+    public static Endec<ForgeDefinition> FORGE_DEFINITION = MinecraftEndecs.IDENTIFIER.xmap(
+            identifier -> {
+                return ForgeRegistry.getForgeDefinition(identifier)
+                        .orElseThrow(() -> new IllegalStateException("Unable to locate ForgerDefinition with ResourceLocation: [ID: " + identifier + "]"));
+            }, forgeDefinition -> {
+                return forgeDefinition.id()
+                        .orElseThrow(() -> new IllegalStateException("A Given forge Definition was not found within the ForgeRegistry!"));
+            }
+    );
+
+    public Optional<ResourceLocation> id() {
+        return ForgeRegistry.getId(this);
+    }
+
+    @Deprecated
+    public static void loadAndEnqueue(ResourceLocation id, JsonObject json) {
+        final int forgeTier = GsonHelper.getAsInt(json, "tier");
+        final float speedMultiplier = GsonHelper.getAsFloat(json, "speed_multiplier", 1);
+        final int fuelCapacity = GsonHelper.getAsInt(json, "fuel_capacity", 48000);
+
+        // TODO: ADD DEPRECATION WARNING ABOUT LOADING TIER INFO
+        var tier = new ForgeTier(forgeTier, speedMultiplier, fuelCapacity, Optional.empty());
+
+        final var mainMaterialId = ResourceLocation.tryParse(GsonHelper.getAsString(json, "material"));
+
+        final var additionalMaterialIds = new ArrayList<ResourceLocation>();
+        GsonHelper.getAsJsonArray(json, "additional_materials", new JsonArray()).forEach(jsonElement -> additionalMaterialIds.add(ResourceLocation.tryParse(jsonElement.getAsString())));
+
+        loadAndEnqueue(id, new RawForgeDefinition(mainMaterialId, additionalMaterialIds, false));
+    }
+
+    private static void loadAndEnqueue(ResourceLocation id, RawForgeDefinition rawForgeDefinition) {
+        final var action = ComplexRegistryAction.Builder.create(() -> {
+            final var mainMaterial = BuiltInRegistries.BLOCK.get(rawForgeDefinition.materialId());
+            final var additionalMaterialsBuilder = new ImmutableList.Builder<Block>();
+            rawForgeDefinition.additionalMaterialIds().forEach(identifier -> additionalMaterialsBuilder.add(BuiltInRegistries.BLOCK.get(identifier)));
+
+            final var definition = new ForgeDefinition(mainMaterial, additionalMaterialsBuilder.build());
+
+            ForgeRegistry.registerDefinition(id, definition);
+        }).entries(rawForgeDefinition.blockIds()).build();
+
+        RegistryHelper.get(BuiltInRegistries.BLOCK).runWhenPresent(action);
+    }
+
+    public boolean isBlockValid(Block block) {
+        return block == material || this.additionalMaterials.contains(block);
+    }
+
     //why kubejs why
     private static final String RECIPE_PATTERN =
             """
@@ -45,53 +104,6 @@ public record ForgeDefinition(int forgeTier,
                     }
                     """;
 
-    private ForgeDefinition(int forgeTier, float speedMultiplier, int fuelCapacity, Block material, ImmutableList<Block> additionalMaterials) {
-        this(forgeTier, speedMultiplier, fuelCapacity, (int) (BASE_MAX_SMELT_TIME / speedMultiplier), material, additionalMaterials);
-    }
-
-    public static final Endec<Block> BLOCK_ENDEC = MinecraftEndecs.ofRegistry(BuiltInRegistries.BLOCK);
-
-    public static Endec<ForgeDefinition> FORGE_DEFINITION = MinecraftEndecs.IDENTIFIER.xmap(
-            identifier -> {
-                return ForgeRegistry.getForgeDefinition(identifier)
-                        .orElseThrow(() -> new IllegalStateException("Unable to locate ForgerDefinition with ResourceLocation: [ID: " + identifier + "]"));
-            }, forgeDefinition -> {
-                for (var entry : ForgeRegistry.getForgeEntries()) {
-                    if(entry.getValue() == forgeDefinition) return entry.getKey();
-                }
-
-                throw new IllegalStateException("A Given forge Definition was not found within the ForgeRegistry!");
-            }
-    );
-
-
-    public static void loadAndEnqueue(ResourceLocation id, JsonObject json) {
-        final int forgeTier = GsonHelper.getAsInt(json, "tier");
-        final float speedMultiplier = GsonHelper.getAsFloat(json, "speed_multiplier", 1);
-        final int fuelCapacity = GsonHelper.getAsInt(json, "fuel_capacity", 48000);
-
-        final var mainMaterialId = ResourceLocation.tryParse(GsonHelper.getAsString(json, "material"));
-
-        final var additionalMaterialIds = new ArrayList<ResourceLocation>();
-        GsonHelper.getAsJsonArray(json, "additional_materials", new JsonArray()).forEach(jsonElement -> additionalMaterialIds.add(ResourceLocation.tryParse(jsonElement.getAsString())));
-
-        final var action = ComplexRegistryAction.Builder.create(() -> {
-            final var mainMaterial = BuiltInRegistries.BLOCK.get(mainMaterialId);
-            final var additionalMaterialsBuilder = new ImmutableList.Builder<Block>();
-            additionalMaterialIds.forEach(identifier -> additionalMaterialsBuilder.add(BuiltInRegistries.BLOCK.get(identifier)));
-
-            final var definition = new ForgeDefinition(forgeTier, speedMultiplier, fuelCapacity, mainMaterial, additionalMaterialsBuilder.build());
-
-            ForgeRegistry.registerDefinition(id, definition);
-        }).entry(mainMaterialId).entries(additionalMaterialIds).build();
-
-        RegistryHelper.get(BuiltInRegistries.BLOCK).runWhenPresent(action);
-    }
-
-    public boolean isBlockValid(Block block) {
-        return block == material || this.additionalMaterials.contains(block);
-    }
-
     public JsonElement generateRecipe(ResourceLocation id) {
         String recipe = RECIPE_PATTERN.replace("{material}", BuiltInRegistries.ITEM.getKey(material.asItem()).toString());
         recipe = recipe.replace("{controller}", BuiltInRegistries.ITEM.getKey(ForgeRegistry.getControllerBlock(id).get().asItem()).toString());
@@ -99,14 +111,55 @@ public record ForgeDefinition(int forgeTier,
         return ForgeRegistry.GSON.fromJson(recipe, JsonObject.class);
     }
 
+    public static void initLoaders() {
+        EndecableModDataLoader.of(
+                AlloyForgery.id("old_forge_definition_loader"),
+                "alloy_forges",
+                GsonEndec.INSTANCE.xmap(JsonElement::getAsJsonObject, jsonObject -> jsonObject),
+                ForgeDefinition::loadAndEnqueue
+        ).load();
+
+        EndecableModDataLoader.of(
+                AlloyForgery.id("forge_definition_loader"),
+                "alloy_forge/forge",
+                RawForgeDefinition.ENDEC,
+                ForgeDefinition::loadAndEnqueue
+        ).load();
+
+        RecipeInjector.ADD_RECIPES.register(instance -> {
+            for (var forgeEntry : ForgeRegistry.getForgeEntries()) {
+                var id = forgeEntry.getKey();
+
+                var recipe = RecipeSerializer.SHAPED_RECIPE.codec()
+                        .codec()
+                        .decode(JsonOps.INSTANCE, forgeEntry.getValue().generateRecipe(id))
+                        .getOrThrow(string -> new IllegalStateException("Unable to generate recipe for given ForgeDefinition [" + id + "]: " + string))
+                        .getFirst();
+
+                instance.addRecipe(id.withSuffix("_recipe"), recipe);
+            }
+        });
+    }
+
+    private record RawForgeDefinition(ResourceLocation materialId, List<ResourceLocation> additionalMaterialIds, boolean isBlockEntity) {
+        public static final StructEndec<RawForgeDefinition> ENDEC = StructEndecBuilder.of(
+                MinecraftEndecs.IDENTIFIER.fieldOf("material", RawForgeDefinition::materialId),
+                MinecraftEndecs.IDENTIFIER.listOf().optionalFieldOf("additional_materials", RawForgeDefinition::additionalMaterialIds, List.of()),
+                Endec.BOOLEAN.optionalFieldOf("is_block_entity", RawForgeDefinition::isBlockEntity, false),
+                RawForgeDefinition::new
+        );
+
+        public List<ResourceLocation> blockIds() {
+            var list = new ArrayList<>(additionalMaterialIds);
+            list.addFirst(materialId);
+            return list;
+        }
+    }
+
     @Override
     public String toString() {
         return "ForgeDefinition{" +
-                "forgeTier=" + forgeTier +
-                ", speedMultiplier=" + speedMultiplier +
-                ", fuelCapacity=" + fuelCapacity +
-                ", maxSmeltTime=" + maxSmeltTime +
-                ", material=" + material +
+                "material=" + material +
                 ", additionalMaterials=" + additionalMaterials +
                 '}';
     }

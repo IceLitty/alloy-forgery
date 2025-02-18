@@ -1,13 +1,13 @@
 package wraith.alloyforgery;
 
-import io.wispforest.owo.moddata.ModDataLoader;
-import io.wispforest.owo.network.OwoNetChannel;
 import io.wispforest.owo.particles.ClientParticles;
 import io.wispforest.owo.particles.systems.ParticleSystem;
 import io.wispforest.owo.particles.systems.ParticleSystemController;
+import io.wispforest.owo.serialization.CodecUtils;
 import io.wispforest.owo.util.OwoFreezer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
@@ -30,12 +30,15 @@ import net.neoforged.fml.loading.FMLLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wraith.alloyforgery.block.ForgeControllerBlockEntity;
+import wraith.alloyforgery.client.BlockEntityLocation;
 import wraith.alloyforgery.client.AlloyForgeryClient;
 import wraith.alloyforgery.compat.AlloyForgeryConfig;
 import wraith.alloyforgery.data.AlloyForgeryGlobalRemaindersLoader;
 import wraith.alloyforgery.data.RecipeTagLoader;
-import wraith.alloyforgery.forges.ForgeRegistry;
-import wraith.alloyforgery.forges.FuelDataLoader;
+import wraith.alloyforgery.forges.ForgeDefinition;
+import wraith.alloyforgery.forges.ForgeFuelRegistry;
+import wraith.alloyforgery.forges.ForgeTierRegistry;
+import wraith.alloyforgery.networking.AlloyForgeNetworking;
 import wraith.alloyforgery.recipe.*;
 import wraith.alloyforgery.utils.RecipeInjector;
 
@@ -44,8 +47,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Mod(AlloyForgery.MOD_ID)
 public class AlloyForgery implements ModInitializer {
-
-    public static final OwoNetChannel CHANNEL = OwoNetChannel.create(id("main"));
 
     public static final String MOD_ID = "alloy_forgery";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
@@ -80,10 +81,16 @@ public class AlloyForgery implements ModInitializer {
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public void onInitialize() {
-        ALLOY_FORGE_SCREEN_HANDLER_TYPE = Registry.register(BuiltInRegistries.MENU, id("alloy_forge"), new MenuType<>(AlloyForgeScreenHandler::new, FeatureFlags.DEFAULT_FLAGS));
+        AlloyForgeNetworking.init();
+
+        ALLOY_FORGE_SCREEN_HANDLER_TYPE = Registry.register(BuiltInRegistries.MENU, id("alloy_forge"), new ExtendedScreenHandlerType<>(
+                (syncId, inventory, location) -> new AlloyForgeScreenHandler(syncId, inventory, location.get(inventory.player, FORGE_CONTROLLER_BLOCK_ENTITY)),
+                CodecUtils.toPacketCodec(BlockEntityLocation.ENDEC)));
 
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new AlloyForgeryGlobalRemaindersLoader());
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(FuelDataLoader.INSTANCE);
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ForgeFuelRegistry.FUEL_DATA_LOADER);
+
+        ForgeTierRegistry.initDataLoaders();
 
         var recipeTagLoader = new RecipeTagLoader();
 
@@ -91,12 +98,10 @@ public class AlloyForgery implements ModInitializer {
 
         recipeTagLoader.initEvents();
 
-        CHANNEL.registerClientboundDeferred(RecipeTagLoader.TagPacket.class);
-
         RecipeInjector.initEvents();
         RecipeInjector.ADD_RECIPES.register(new BlastFurnaceRecipeAdapter());
 
-        ModDataLoader.load(ForgeRegistry.Loader.INSTANCE);
+        ForgeDefinition.initLoaders();
         Block[] blocks = FORGE_CONTROLLER_BLOCK_ENTITY_BLOCK_LIST.toArray(Block[]::new);
         LOGGER.warn("AlloyForgery loaded {} controller blocks", FORGE_CONTROLLER_BLOCK_ENTITY_BLOCK_LIST);
         FORGE_CONTROLLER_BLOCK_ENTITY = BlockEntityType.Builder.of(ForgeControllerBlockEntity::new, blocks).build(null);
