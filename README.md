@@ -1,7 +1,8 @@
 ## Tag [2.4.1+1.21.1+NeoForge](https://github.com/IceLitty/alloy-forgery/tree/2.4.1%2B1.21.1%2BNeoForge)
 ### State: Playable
-- Need manually extract controller recipe folder to owo `.\moddata` folder like `\.minecraft\moddata\alloy_forgery\alloy_forges\bricks_forge.json`.
+- **Need manually extract** controller recipe folder to owo `.\moddata` folder like `\.minecraft\moddata\alloy_forgery\alloy_forges\bricks_forge.json`.
   - Source at main method load `wraith.alloyforgery.forges.ForgeRegistry.Loader.INSTANCE` -> `getDataSubdirectory()` return `alloy_forges`, but owo check folder in jar says not find. Use owo fallback method: find files in folder to load.
+  - Can track issue from log file by search `AlloyForgery loaded` and see how many controller block(s) loaded. Except at least one of them, otherwise will crash.
 - Why forgified-fabric-api mixin `net.minecraft.world.entity.npc.VillagerTrades.EmeraldsForVillagerTypeItem#disableVanillaCheck()`? It's not in 1.21.1 jar... Manually remove mixin json `TradeOffersTypeAwareBuyForOneEmeraldFactoryMixin` to skip that, hopes nothing mods use it.
 
 ### Notice:
@@ -17,5 +18,8 @@
 
 ## Tag [2.4.2+pre+1.21.1+NeoForge](https://github.com/IceLitty/alloy-forgery/releases/tag/2.4.2%2Bpre%2B1.21.1%2BNeoForge)
 ### State: Playable
+- Still **need manually extract** controller recipe folder to owo `.\moddata` folder, but instead to like `\.minecraft\moddata\alloy_forgery\alloy_forge\forge\bricks_forge.json`. Old folder structure compatible.
+  - Source at main method call `wraith.alloyforgery.forges.ForgeDefinition.initLoaders()` use `EndecableModDataLoader` load two folder handled by owo.
+  - Can track issue from log file by search `AlloyForgery loaded` and see how many controller block(s) loaded. Except at least one of them, otherwise will crash.
 - Still may fix forgified-fabric-api mixin problem?
-- Not require manually copy `moddata` used by owo, because experimental branch patch is removed this folder, instead by `alloy_forge` folder.
+  - Confused me... My other client can normally use forgified-fabric-api but dev client (still normally init) has this problem.
