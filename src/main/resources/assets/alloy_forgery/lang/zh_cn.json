@@ -21,7 +21,7 @@
   "container.alloy_forgery.rei.title": "合金冶炼",
   "container.alloy_forgery.rei.min_tier": "冶炼炉等级要求：%d",
   "container.alloy_forgery.rei.fuel_per_tick": "燃料消耗：%d/刻",
-  "container.alloy_forgery.rei.button": "覆盖循环等级",
+  "container.alloy_forgery.rei.button": "切换显示不同等级配方",
 
   "message.alloy_forgery.invalid_multiblock": "多方块结构配置无效",
   "itemGroup.alloy_forgery.alloy_forgery": "冶炼合金",
